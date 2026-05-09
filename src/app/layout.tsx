@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
+
 import "./globals.css";
+
+import Navbar from "@/components/layout/navbar";
+
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: "NearbyNow",
@@ -13,7 +18,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="bg-neutral-100 text-black">
+        <Navbar />
+
+        {children}
+
+        <Toaster position="top-right" richColors />
+      </body>
     </html>
   );
 }

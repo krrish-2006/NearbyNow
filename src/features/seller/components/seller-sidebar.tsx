@@ -1,41 +1,58 @@
 "use client";
 
 import Link from "next/link";
+
 import { usePathname } from "next/navigation";
 
-import { sellerNavigation } from "../utils/navigation";
-import PortalSwitcher from "./portal-switcher";
+const links = [
+  {
+    label: "Dashboard",
+    href: "/seller",
+  },
+  {
+    label: "Products",
+    href: "/seller/products",
+  },
+  {
+    label: "Orders",
+    href: "/seller/orders",
+  },
+  {
+    label: "Profile",
+    href: "/seller/profile",
+  },
+  {
+    label: "Settings",
+    href: "/seller/settings",
+  },
+];
 
 export default function SellerSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 border-r border-neutral-200 bg-white p-6">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold">Seller Portal</h2>
+    <aside className="flex min-h-screen w-72 flex-col border-r bg-white p-6">
+      <div className="mb-10">
+        <h1 className="text-3xl font-black">Seller Portal</h1>
 
-        <p className="mt-1 text-sm text-neutral-500">NearbyNow Seller</p>
-      </div>
-
-      <div className="mb-8">
-        <PortalSwitcher />
+        <p className="mt-2 text-sm text-neutral-500">NearbyNow Seller</p>
       </div>
 
       <nav className="flex flex-col gap-2">
-        {sellerNavigation.map((item) => {
-          const isActive = pathname === item.href;
+        {links.map((link) => {
+          const isActive = pathname === link.href;
 
           return (
             <Link
-              key={item.href}
-              href={item.href}
-              className={`rounded-lg px-4 py-3 transition ${
+              key={link.href}
+              href={link.href}
+              className={`rounded-2xl px-5 py-4 text-sm font-semibold transition ${
                 isActive
                   ? "bg-black text-white"
                   : "text-neutral-700 hover:bg-neutral-100"
               }`}
             >
-              {item.label}
+              {link.label}
             </Link>
           );
         })}
