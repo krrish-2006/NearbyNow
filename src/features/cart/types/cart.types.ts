@@ -2,7 +2,13 @@ import type { Tables } from "@/types/database";
 
 export type CartProductSummary = Pick<
   Tables<"products">,
-  "id" | "title" | "price" | "image_url" | "stock_quantity" | "is_active"
+  | "id"
+  | "title"
+  | "price"
+  | "image_url"
+  | "stock_quantity"
+  | "is_active"
+  | "shop_id"
 >;
 
 export type CartItemWithProduct = Pick<

@@ -37,3 +37,33 @@ export async function createShop(
 
   return data;
 }
+
+export async function updateShopCityBySellerId(
+  supabase: SupabaseClient<Database>,
+  sellerProfileId: string,
+  cityId: string | null
+): Promise<boolean> {
+  const { error } = await supabase
+    .from("shops")
+    .update({
+      city_id: cityId,
+    })
+    .eq("seller_profile_id", sellerProfileId);
+
+  return !error;
+}
+
+export async function updateShopNameBySellerId(
+  supabase: SupabaseClient<Database>,
+  sellerProfileId: string,
+  name: string,
+): Promise<boolean> {
+  const { error } = await supabase
+    .from("shops")
+    .update({
+      name,
+    })
+    .eq("seller_profile_id", sellerProfileId);
+
+  return !error;
+}

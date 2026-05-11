@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
+import type { ActionResult } from "@/features/actions/action-result";
 
 import {
   uploadProductImage,
@@ -23,7 +24,7 @@ import {
 
 export async function createProductAction(
   formData: FormData
-) {
+): Promise<ActionResult<{ id: string }>> {
   const supabase = await createClient();
 
   const {
@@ -43,10 +44,9 @@ export async function createProductAction(
     price: formData.get("price"),
     stockQuantity: formData.get("stockQuantity"),
     categoryId: formData.get("categoryId"),
-    image:
-    formData.get("image") instanceof File
-    ? formData.get("image")
-    : undefined,
+    image: formData
+      .getAll("image")
+      .filter((image): image is File => image instanceof File && image.size > 0),
   });
 
   if (!parsed.success) {
@@ -72,8 +72,12 @@ export async function createProductAction(
 
   let imageUrl: string | null = null;
 
-  const imageFile =
-  parsed.data.image as File | undefined;
+  const imageFiles =
+    Array.isArray(parsed.data.image)
+      ? (parsed.data.image as File[])
+      : [];
+
+  const imageFile = imageFiles[0];
 
   if (imageFile && imageFile.size > 0) {
     const uploaded = await uploadProductImage(

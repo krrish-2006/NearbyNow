@@ -2,27 +2,28 @@
 
 ## Highest Priority
 
-1. Refactor seller pages to use typed repositories and remove remaining `any`.
-2. Move checkout/order creation and stock decrement into an atomic Postgres RPC.
-3. Add tests for cart quantity limits, checkout pricing, order creation, and stock decrement.
-4. Replace deprecated `middleware.ts` convention with Next.js `proxy.ts`.
-5. Audit Supabase RLS policies for buyer/seller permissions.
+1. Push `supabase/migrations/20260511143000_create_seller_cart_quantity_rpc.sql` after approval.
+2. Start local Supabase/Docker and run `supabase/tests/checkout_rls.test.sql`.
+3. Add local Supabase integration coverage for wishlist RLS, seller wishlist metrics, and seller cart quantity metrics.
+4. Audit live RLS behavior after real buyer/seller test accounts place orders and wishlist products.
+5. Add richer seller fulfillment details such as cancellation reasons or pickup windows.
 
 ## Architecture Improvements
 
-1. Add a shared `ActionResult` type for all Server Actions.
-2. Standardize repository return shapes and error handling.
-3. Move checkout business rules into a dedicated service layer.
-4. Add typed seller read models for seller products, seller orders, and settings.
-5. Remove duplicated database type files if one is obsolete.
+1. Standardize repository return shapes and error handling.
+2. Continue moving checkout business rules into the checkout service layer.
+3. Add typed repositories for any remaining route-level Supabase reads.
+4. Expand structured error surfaces for any remaining critical mutations.
+5. Add better seller action feedback after city/product/order updates.
 
 ## Product Improvements
 
-1. Add wishlist/favorites.
+1. Add a buyer wishlist page.
 2. Add product reviews and ratings.
 3. Add seller shop public pages.
 4. Add order cancellation/status tracking.
 5. Add better empty/loading/error states.
+6. Add a true product image gallery table if multiple stored images become required.
 
 ## Learning Goals
 

@@ -7,11 +7,9 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCartItemsByUserId } from "@/repositories/cart.repository";
 
-import { placeOrderAction } from "@/features/orders/actions/place-order.action";
-
 import CartActions from "@/features/cart/components/cart-actions";
+import CartCheckoutForm from "@/features/checkout/components/cart-checkout-form";
 
-import Button from "@/components/ui/button";
 import { formatInr } from "@/lib/formatters/currency";
 
 export default async function CartPage() {
@@ -110,11 +108,9 @@ export default async function CartPage() {
               <span className="font-bold">{formatInr(subtotal)}</span>
             </div>
 
-            <form action={placeOrderAction}>
-              <Button className="mt-8 w-full py-4 text-lg">
-                Place COD Order
-              </Button>
-            </form>
+            <div className="mt-8">
+              <CartCheckoutForm />
+            </div>
           </div>
         </div>
       )}

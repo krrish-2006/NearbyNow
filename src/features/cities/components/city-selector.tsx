@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useOptimistic, useTransition } from "react";
 
 import { useRouter } from "next/navigation";
 
@@ -24,16 +24,14 @@ export default function CitySelector({
 
   const [isPending, startTransition] = useTransition();
 
-  const [value, setValue] = useState(selectedCityId || "");
-
-  useEffect(() => {
-    setValue(selectedCityId || "");
-  }, [selectedCityId]);
+  const [optimisticValue, setOptimisticValue] = useOptimistic(
+    selectedCityId || "",
+  );
 
   function handleChange(cityId: string) {
-    setValue(cityId);
-
     startTransition(async () => {
+      setOptimisticValue(cityId);
+
       await setSelectedCity(cityId);
 
       router.refresh();
@@ -42,7 +40,7 @@ export default function CitySelector({
 
   return (
     <select
-      value={value}
+      value={optimisticValue}
       onChange={(e) => handleChange(e.target.value)}
       disabled={isPending}
       className="h-11 rounded-2xl border bg-white px-4 text-sm font-medium shadow-sm outline-none transition focus:ring-2 focus:ring-black"

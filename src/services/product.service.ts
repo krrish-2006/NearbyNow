@@ -8,22 +8,13 @@ import {
 } from "@/repositories/product.repository";
 
 import { Database } from "@/types/database";
+import type { ActionResult } from "@/features/actions/action-result";
 
 type ProductInsert =
   Database["public"]["Tables"]["products"]["Insert"];
 
 type ProductUpdate =
   Database["public"]["Tables"]["products"]["Update"];
-
-export type ActionResult<T> =
-  | {
-      success: true;
-      data: T;
-    }
-  | {
-      success: false;
-      error: string;
-    };
 
 export async function createProductService(
   supabase: SupabaseClient<Database>,

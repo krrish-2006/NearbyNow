@@ -1,16 +1,12 @@
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { getCategories } from "@/repositories/category.repository";
 
 import { ProductForm } from "@/features/products/components/product-form";
 
-type Category = {
-  id: string;
-  name: string;
-};
-
 export default async function NewProductPage() {
-  const supabase: any = await createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },
@@ -20,12 +16,7 @@ export default async function NewProductPage() {
     redirect("/login");
   }
 
-  const { data } = await supabase
-    .from("categories")
-    .select("id, name")
-    .order("name");
-
-  const categories: Category[] = data ?? [];
+  const categories = await getCategories(supabase);
 
   return (
     <div className="space-y-6">

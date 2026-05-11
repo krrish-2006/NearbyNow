@@ -3,11 +3,13 @@
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
+import type { ActionResult } from "@/features/actions/action-result";
+import { validateCartQuantityUpdate } from "@/features/cart/lib/cart-quantity";
 
 export async function updateCartQuantityAction(
   cartItemId: string,
   quantity: number
-) {
+): Promise<ActionResult> {
   const supabase =
     await createClient();
 
@@ -30,6 +32,7 @@ export async function updateCartQuantityAction(
       .eq("user_id", user.id);
 
     revalidatePath("/cart");
+    revalidatePath("/seller/orders");
 
     return {
       success: true,
@@ -51,18 +54,16 @@ export async function updateCartQuantityAction(
     .eq("user_id", user.id)
     .single();
 
-  if (!cartItem?.products?.is_active) {
-    return {
-      success: false,
-      error: "This product is unavailable",
-    };
-  }
+  const validation = validateCartQuantityUpdate(
+    {
+      stockQuantity: cartItem?.products?.stock_quantity,
+      isActive: cartItem?.products?.is_active,
+    },
+    quantity,
+  );
 
-  if (quantity > (cartItem.products.stock_quantity ?? 0)) {
-    return {
-      success: false,
-      error: `Only ${cartItem.products.stock_quantity ?? 0} in stock`,
-    };
+  if (!validation.success) {
+    return validation;
   }
 
   await supabase
@@ -74,6 +75,7 @@ export async function updateCartQuantityAction(
     .eq("user_id", user.id);
 
   revalidatePath("/cart");
+  revalidatePath("/seller/orders");
 
   return {
     success: true,

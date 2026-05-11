@@ -6,6 +6,10 @@ import type {
   ProductDetails,
   ProductFilters,
 } from "@/features/products/types/product.types";
+import type {
+  SellerEditableProduct,
+  SellerProductCard,
+} from "@/features/seller/types/seller.types";
 
 type Product = Tables<"products">;
 
@@ -52,6 +56,33 @@ export async function getProductsByShopId(
   return data;
 }
 
+export async function getSellerProductCardsByShopId(
+  supabase: SupabaseClient<Database>,
+  shopId: string
+): Promise<SellerProductCard[]> {
+  const { data, error } = await supabase
+    .from("products")
+    .select(
+      `
+        id,
+        title,
+        price,
+        stock_quantity,
+        image_url
+      `,
+    )
+    .eq("shop_id", shopId)
+    .order("created_at", {
+      ascending: false,
+    });
+
+  if (error || !data) {
+    return [];
+  }
+
+  return data;
+}
+
 export async function getProductById(
   supabase: SupabaseClient<Database>,
   productId: string
@@ -63,6 +94,35 @@ export async function getProductById(
     .single();
 
   if (error) {
+    return null;
+  }
+
+  return data;
+}
+
+export async function getSellerEditableProductById(
+  supabase: SupabaseClient<Database>,
+  productId: string,
+  shopId: string
+): Promise<SellerEditableProduct | null> {
+  const { data, error } = await supabase
+    .from("products")
+    .select(
+      `
+        id,
+        title,
+        description,
+        image_url,
+        price,
+        stock_quantity,
+        category_id
+      `,
+    )
+    .eq("id", productId)
+    .eq("shop_id", shopId)
+    .single();
+
+  if (error || !data) {
     return null;
   }
 

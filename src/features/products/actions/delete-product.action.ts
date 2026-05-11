@@ -3,12 +3,13 @@
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
+import type { ActionResult } from "@/features/actions/action-result";
 
 import { getShopBySellerId } from "@/repositories/shop.repository";
 
 export async function deleteProductAction(
   productId: string
-) {
+): Promise<ActionResult> {
   const supabase = await createClient();
 
   const {

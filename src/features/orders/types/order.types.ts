@@ -2,7 +2,7 @@ import type { Tables } from "@/types/database";
 
 export type OrderItemWithProduct = Pick<
   Tables<"order_items">,
-  "id" | "quantity" | "price"
+  "id" | "quantity" | "price" | "status"
 > & {
   products: Pick<Tables<"products">, "title"> | null;
 };

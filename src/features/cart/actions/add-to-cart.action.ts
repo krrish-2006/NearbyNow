@@ -3,10 +3,12 @@
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
+import type { ActionResult } from "@/features/actions/action-result";
+import { validateProductCanBeAddedToCart } from "@/features/cart/lib/cart-quantity";
 
 export async function addToCartAction(
   productId: string
-) {
+): Promise<ActionResult> {
   const supabase =
     await createClient();
 
@@ -28,20 +30,6 @@ export async function addToCartAction(
       .eq("id", productId)
       .single();
 
-  if (!product?.is_active) {
-    return {
-      success: false,
-      error: "This product is unavailable",
-    };
-  }
-
-  if ((product.stock_quantity ?? 0) <= 0) {
-    return {
-      success: false,
-      error: "This product is out of stock",
-    };
-  }
-
   const { data: existingItem } =
     await supabase
       .from("cart_items")
@@ -51,11 +39,16 @@ export async function addToCartAction(
       .maybeSingle();
 
   if (existingItem) {
-    if (existingItem.quantity >= product.stock_quantity) {
-      return {
-        success: false,
-        error: `Only ${product.stock_quantity} in stock`,
-      };
+    const validation = validateProductCanBeAddedToCart(
+      {
+        stockQuantity: product?.stock_quantity,
+        isActive: product?.is_active,
+      },
+      existingItem.quantity,
+    );
+
+    if (!validation.success) {
+      return validation;
     }
 
     const { error } = await supabase
@@ -73,6 +66,15 @@ export async function addToCartAction(
       };
     }
   } else {
+    const validation = validateProductCanBeAddedToCart({
+      stockQuantity: product?.stock_quantity,
+      isActive: product?.is_active,
+    });
+
+    if (!validation.success) {
+      return validation;
+    }
+
     const { error } = await supabase
       .from("cart_items")
       .insert({
@@ -90,6 +92,7 @@ export async function addToCartAction(
   }
 
   revalidatePath("/cart");
+  revalidatePath("/seller/orders");
 
   return {
     success: true,

@@ -11,10 +11,12 @@ import {
   getProductDetails,
   getRelatedProducts,
 } from "@/repositories/product.repository";
+import { getWishlistItemId } from "@/repositories/wishlist.repository";
 
 import BuyNowButton from "@/features/checkout/components/buy-now-button";
 import AddToCartButton from "@/features/cart/components/add-to-cart-button";
 import ProductCard from "@/features/products/components/product-card";
+import WishlistButton from "@/features/wishlist/components/wishlist-button";
 
 export default async function ProductDetailsPage({
   params,
@@ -41,6 +43,12 @@ export default async function ProductDetailsPage({
     supabase,
     user?.id,
     product.id
+  );
+
+  const existingWishlistItemId = await getWishlistItemId(
+    supabase,
+    user?.id,
+    product.id,
   );
 
   const relatedProducts = await getRelatedProducts(supabase, product);
@@ -103,12 +111,19 @@ export default async function ProductDetailsPage({
               </div>
 
               <div className="rounded-3xl border bg-white p-5 shadow-sm">
-                <div>
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
                   <p className="text-sm text-neutral-500">Sold by</p>
 
                   <h2 className="mt-1 text-xl font-bold">
                     {product.shops?.name ?? "Local shop"}
                   </h2>
+                  </div>
+
+                  <WishlistButton
+                    productId={product.id}
+                    initialWishlisted={Boolean(existingWishlistItemId)}
+                  />
                 </div>
               </div>
 

@@ -35,7 +35,7 @@ export default async function DirectCheckoutPage({
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/auth/login");
+    redirect("/login");
   }
 
   const { data: product } = await supabase

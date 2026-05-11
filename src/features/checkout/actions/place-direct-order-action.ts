@@ -4,12 +4,24 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import type { ActionResult } from "@/features/actions/action-result";
+import { placeDirectCodOrder } from "@/features/checkout/services/checkout.service";
 
-import { calculateCheckoutPricing } from "@/features/checkout/lib/calculate-checkout-pricing";
+type DirectOrderResult = ActionResult;
 
 export async function placeDirectOrderAction(
   formData: FormData
-) {
+): Promise<DirectOrderResult>;
+export async function placeDirectOrderAction(
+  _previousState: DirectOrderResult,
+  formData: FormData
+): Promise<DirectOrderResult>;
+export async function placeDirectOrderAction(
+  firstArg: FormData | DirectOrderResult,
+  secondArg?: FormData,
+): Promise<DirectOrderResult> {
+  const formData = secondArg ?? (firstArg as FormData);
+
   const productId = String(formData.get("productId"));
 
   const quantity = Number(
@@ -17,7 +29,10 @@ export async function placeDirectOrderAction(
   );
 
   if (!productId || quantity <= 0) {
-    redirect("/");
+    return {
+      success: false,
+      error: "Choose a valid product and quantity",
+    };
   }
 
   const supabase =
@@ -44,63 +59,31 @@ export async function placeDirectOrderAction(
       .eq("id", productId)
       .single();
 
-  if (!product || !product.is_active || product.stock_quantity < quantity) {
-    redirect("/");
+  if (!product || !product.is_active) {
+    return {
+      success: false,
+      error: "This product is unavailable",
+    };
   }
 
-  const pricing =
-    calculateCheckoutPricing({
-      price: product.price,
-      quantity,
-    });
-
-  const {
-    data: order,
-    error: orderError,
-  } = await supabase
-    .from("orders")
-    .insert({
-      user_id: user.id,
-      total_amount: pricing.total,
-      payment_method: "COD",
-    })
-    .select()
-    .single();
-
-  if (orderError || !order) {
-    redirect("/");
+  if (product.stock_quantity < quantity) {
+    return {
+      success: false,
+      error: `Only ${product.stock_quantity} in stock`,
+    };
   }
 
-  const {
-    error: orderItemError,
-  } = await supabase
-    .from("order_items")
-    .insert({
-      order_id: order.id,
-      product_id: product.id,
-      quantity,
-      price: product.price,
-    });
+  const result = await placeDirectCodOrder(supabase, {
+    productId: product.id,
+    quantity,
+  });
 
-  if (orderItemError) {
-    redirect("/");
-  }
-
-  const { error: stockError } = await supabase
-    .from("products")
-    .update({
-      stock_quantity:
-        product.stock_quantity -
-        quantity,
-    })
-    .eq("id", product.id)
-    .eq("stock_quantity", product.stock_quantity);
-
-  if (stockError) {
-    redirect("/");
+  if (!result.success) {
+    return result;
   }
 
   revalidatePath("/orders");
+  revalidatePath("/seller/orders");
   revalidatePath("/");
   revalidatePath("/products");
   revalidatePath(`/products/${product.id}`);

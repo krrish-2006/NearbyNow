@@ -1,6 +1,9 @@
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { getCategories } from "@/repositories/category.repository";
+import { getSellerEditableProductById } from "@/repositories/product.repository";
+import { getShopBySellerId } from "@/repositories/shop.repository";
 
 import { ProductForm } from "@/features/products/components/product-form";
 
@@ -13,7 +16,7 @@ export default async function EditProductPage({
 }) {
   const { id } = await params;
 
-  const supabase: any = await createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },
@@ -23,20 +26,23 @@ export default async function EditProductPage({
     redirect("/login");
   }
 
-  const { data: product } = await supabase
-    .from("products")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const sellerShop = await getShopBySellerId(supabase, user.id);
+
+  if (!sellerShop) {
+    redirect("/seller/products");
+  }
+
+  const product = await getSellerEditableProductById(
+    supabase,
+    id,
+    sellerShop.id,
+  );
 
   if (!product) {
     redirect("/seller/products");
   }
 
-  const { data: categories } = await supabase
-    .from("categories")
-    .select("id, name")
-    .order("name");
+  const categories = await getCategories(supabase);
 
   return (
     <div className="space-y-6">
@@ -49,13 +55,14 @@ export default async function EditProductPage({
       </div>
 
       <ProductForm
-        categories={categories ?? []}
+        categories={categories}
         initialValues={{
           title: product.title,
-          description: product.description,
+          description: product.description ?? "",
+          imageUrl: product.image_url,
           price: product.price,
           stockQuantity: product.stock_quantity,
-          categoryId: product.category_id,
+          categoryId: product.category_id ?? "",
         }}
         productId={product.id}
         mode="edit"

@@ -1,47 +1,35 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { redirect } from "next/navigation";
-
 import { deleteProductAction } from "@/features/products/actions/delete-product.action";
+import { requireSeller } from "@/features/seller/utils/require-seller";
 
 import { createClient } from "@/lib/supabase/server";
 
 import { getShopBySellerId } from "@/repositories/shop.repository";
+import { getSellerProductCardsByShopId } from "@/repositories/product.repository";
 import { formatInr } from "@/lib/formatters/currency";
 
 export default async function SellerProductsPage() {
-  const supabase: any = await createClient();
+  const profile = await requireSeller();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await createClient();
 
-  if (!user) {
-    redirect("/login");
-  }
-
-  const sellerShop = await getShopBySellerId(supabase, user.id);
+  const sellerShop = await getShopBySellerId(supabase, profile.id);
 
   if (!sellerShop) {
-    redirect("/");
+    return (
+      <div className="rounded-2xl border p-10 text-center">
+        <h1 className="text-2xl font-bold">Shop not found</h1>
+
+        <p className="mt-2 text-sm text-muted-foreground">
+          Create your seller shop before adding products.
+        </p>
+      </div>
+    );
   }
 
-  const { data: products } = await supabase
-    .from("products")
-    .select(
-      `
-      id,
-      title,
-      price,
-      stock_quantity,
-      image_url
-    `,
-    )
-    .eq("shop_id", sellerShop.id)
-    .order("created_at", {
-      ascending: false,
-    });
+  const products = await getSellerProductCardsByShopId(supabase, sellerShop.id);
 
   return (
     <div className="space-y-8">
@@ -62,7 +50,7 @@ export default async function SellerProductsPage() {
         </Link>
       </div>
 
-      {!products || products.length === 0 ? (
+      {products.length === 0 ? (
         <div className="rounded-2xl border p-10 text-center">
           <h2 className="text-xl font-semibold">No products yet</h2>
 
@@ -72,7 +60,7 @@ export default async function SellerProductsPage() {
         </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {products.map((product: any) => (
+          {products.map((product) => (
             <div
               key={product.id}
               className="overflow-hidden rounded-2xl border"

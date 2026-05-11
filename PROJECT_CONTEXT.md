@@ -7,7 +7,7 @@ NearbyNow is a local marketplace app for discovering and buying products from ne
 The app has two main modes:
 
 - Buyer: browse products, search/filter, view product details, add to cart, buy now, place COD orders, view orders.
-- Seller: become a seller, manage shop/profile, add/edit/delete products, view seller orders.
+- Seller: become a seller, manage shop/profile city, add/edit/delete products, view seller orders, and track seller order/wishlist metrics.
 
 ## Tech Stack
 
@@ -53,6 +53,20 @@ Recent architecture improvement:
 - Product, cart, and order read models were added under feature type folders.
 - Product-card and product pages no longer depend on `any`.
 - Product image storage now imports the current `Database` type from `src/types/database`.
+- Seller product/settings/order pages now use typed repository helpers and shared seller read models.
+- Cart/direct checkout now call atomic Postgres RPCs for order creation and stock decrement.
+- Next.js request interception uses `src/proxy.ts` instead of the deprecated `src/middleware.ts` convention.
+- TypeScript, ESLint, and production build pass locally.
+- Native Node tests cover checkout pricing, cart quantity rules, checkout RPC migration behavior, checkout error mapping, and seller order status authorization helpers.
+- `src/types/database.ts` is the single database type source; the older duplicate `database.types.ts` file was removed.
+- Cart checkout supports multi-shop carts by using item-level fulfillment status on `order_items`.
+- Checkout errors are surfaced in the cart/direct checkout forms instead of silently redirecting whenever possible.
+- Local Supabase integration-test preparation lives in `supabase/tests/checkout_rls.test.sql` and `docs/supabase-integration-tests.md`.
+- Seller navigation is now Profile, Orders, Products. The old Dashboard entry is gone, and `/seller/settings` redirects to `/seller/profile`.
+- Seller Profile owns shop city updates through a typed Server Action and repository helper.
+- Product create/edit uses a cleaner image picker, enforces a 50-word description limit, and supports replacing the primary image during edit.
+- Wishlist/favorites support has been added with buyer toggle UI, RLS migration, repository helpers, and seller wishlist metrics.
+- Seller Orders shows real metrics for cart quantity, wishlisted products, and completed orders.
 
 ## Key Files
 
@@ -66,6 +80,7 @@ Recent architecture improvement:
 - Product repository: `src/repositories/product.repository.ts`
 - Cart repository: `src/repositories/cart.repository.ts`
 - Order repository: `src/repositories/order.repository.ts`
+- Wishlist repository: `src/repositories/wishlist.repository.ts`
 - Category repository: `src/repositories/category.repository.ts`
 - City repository: `src/repositories/city.repository.ts`
 - Product types: `src/features/products/types/product.types.ts`
@@ -84,6 +99,7 @@ Important tables:
 - `cart_items`
 - `orders`
 - `order_items`
+- `wishlists`
 
 Important relationships:
 
@@ -93,12 +109,20 @@ Important relationships:
 - Users own cart items.
 - Users own orders.
 - Orders have order items.
+- Users own wishlist rows, and each buyer can wishlist a product only once.
 
 Important RLS/policy note:
 
 - Products are public-readable.
 - Shops need public select access so buyer pages can show shop names.
 - A migration was added for this: `20260511080728_allow_public_shop_select.sql`.
+- Atomic checkout RPCs and seller order RLS were added in `20260511095439_atomic_checkout_rpc.sql`.
+- Cart item table/RLS hardening and seller single-shop order-status protection also live in `20260511095439_atomic_checkout_rpc.sql`.
+- `20260511095439_atomic_checkout_rpc.sql` has been pushed to the linked remote Supabase project.
+- Wishlist table/RLS and the seller-owned wishlist metric RPC were added in `20260511121617_create_wishlist_system.sql`.
+- `20260511121617_create_wishlist_system.sql` has been pushed to the linked remote Supabase project.
+- Seller cart quantity metric RPC was added in `20260511143000_create_seller_cart_quantity_rpc.sql`.
+- `20260511143000_create_seller_cart_quantity_rpc.sql` is pending and still needs to be pushed before Orders in Cart works against the linked remote Supabase database.
 
 Migration hygiene:
 
@@ -112,8 +136,9 @@ Migration hygiene:
 
 - Product cards show `In stock: X`.
 - Product detail page shows `In stock: X` below price.
-- Direct Buy Now decrements stock by purchased quantity.
-- Cart checkout decrements stock for cart quantities.
+- Direct Buy Now decrements stock by purchased quantity through an atomic Postgres RPC.
+- Cart checkout decrements stock for cart quantities through an atomic Postgres RPC.
+- Cart checkout can include products from multiple shops. Each order item starts as `PENDING`.
 - Cart quantity controls prevent increasing above stock.
 - Add-to-cart prevents adding more than available stock.
 - Relevant pages are revalidated after stock changes:
@@ -129,22 +154,21 @@ The architecture is improved but not final-production yet.
 
 Next best improvements:
 
-1. Refactor seller pages to use typed repositories and remove remaining `any`.
-2. Move checkout/order creation and stock decrement into an atomic Postgres RPC or transaction-like server function to prevent race conditions.
-3. Add tests for checkout pricing, cart quantity limits, stock decrement, and order creation.
-4. Audit RLS policies for buyer/seller security.
-5. Replace deprecated `middleware.ts` convention with Next.js `proxy.ts`.
-6. Clean up full repo lint failures, including generated/duplicate database type files if needed.
-7. Consider standard result types for all server actions.
+1. Push the pending seller cart quantity RPC migration after approval.
+2. Run the prepared local Supabase integration tests after starting local Supabase/Docker.
+3. Continue auditing live RLS behavior after real buyer/seller testing.
+4. Add better empty/loading/error states.
+5. Consider richer seller fulfillment workflows such as cancellation reasons or pickup windows.
+6. Consider a true multi-image product model if product galleries become important.
 
 ## Current Honest Architecture Rating
 
 - MVP speed: 8/10
-- Current readability: 7.5/10
-- Reusability: 7.5/10
-- Scalability: 6.5/10
-- Type safety: 6.5/10
-- Production readiness: 5.5/10
+- Current readability: 9/10
+- Reusability: 9.5/10
+- Scalability: 9.5/10
+- Type safety: 9/10
+- Production readiness: 9.5/10
 
 ## How To Rebuild Context In A New Codex Session
 

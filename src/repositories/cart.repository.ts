@@ -19,7 +19,8 @@ export async function getCartItemsByUserId(
           price,
           image_url,
           stock_quantity,
-          is_active
+          is_active,
+          shop_id
         )
       `,
     )
@@ -30,4 +31,19 @@ export async function getCartItemsByUserId(
   }
 
   return data as CartItemWithProduct[];
+}
+
+export async function getCartQuantityByShopId(
+  supabase: SupabaseClient<Database>,
+  shopId: string,
+): Promise<number | null> {
+  const { data, error } = await supabase.rpc("get_shop_cart_quantity", {
+    p_shop_id: shopId,
+  });
+
+  if (error || typeof data !== "number") {
+    return null;
+  }
+
+  return data;
 }

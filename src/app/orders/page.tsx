@@ -3,6 +3,12 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { formatInr } from "@/lib/formatters/currency";
 import { getOrdersByUserId } from "@/repositories/order.repository";
+import {
+  countOrderStatuses,
+  deriveOrderStatusFromItems,
+  formatOrderStatus,
+  ORDER_STATUSES,
+} from "@/features/orders/lib/order-status";
 
 import EmptyState from "@/components/shared/empty-state";
 
@@ -19,6 +25,12 @@ export default async function OrdersPage() {
   }
 
   const orders = await getOrdersByUserId(supabase, user.id);
+
+  const orderStatuses = orders.map((order) =>
+    deriveOrderStatusFromItems(order.order_items.map((item) => item.status)),
+  );
+
+  const statusCounts = countOrderStatuses(orderStatuses);
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
@@ -41,8 +53,27 @@ export default async function OrdersPage() {
 />
       ) : (
         <div className="space-y-8">
+          <div className="grid gap-3 sm:grid-cols-4">
+            {ORDER_STATUSES.map((status) => (
+              <div key={status} className="rounded-2xl border bg-white p-4">
+                <p className="text-xs font-semibold text-neutral-500">
+                  {formatOrderStatus(status)}
+                </p>
+
+                <p className="mt-2 text-2xl font-black">
+                  {statusCounts[status]}
+                </p>
+              </div>
+            ))}
+          </div>
+
           {orders.map(
-            (order) => (
+            (order) => {
+              const derivedStatus = deriveOrderStatusFromItems(
+                order.order_items.map((item) => item.status),
+              );
+
+              return (
               <div
                 key={order.id}
                 className="rounded-3xl border bg-white p-6"
@@ -62,7 +93,7 @@ export default async function OrdersPage() {
 
                   <div className="flex flex-col items-end">
                     <span className="rounded-full bg-black px-4 py-2 text-xs font-semibold text-white">
-                      {order.status}
+                      {formatOrderStatus(derivedStatus)}
                     </span>
 
                     <p className="mt-3 text-xl font-bold">
@@ -93,6 +124,10 @@ export default async function OrdersPage() {
                               item.quantity
                             }
                           </p>
+
+                          <p className="mt-2 inline-flex rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-700">
+                            {formatOrderStatus(item.status)}
+                          </p>
                         </div>
 
                         <p className="text-lg font-bold">
@@ -103,7 +138,8 @@ export default async function OrdersPage() {
                   )}
                 </div>
               </div>
-            )
+              );
+            }
           )}
         </div>
       )}
