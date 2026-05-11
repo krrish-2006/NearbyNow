@@ -8,6 +8,7 @@ import { deleteProductAction } from "@/features/products/actions/delete-product.
 import { createClient } from "@/lib/supabase/server";
 
 import { getShopBySellerId } from "@/repositories/shop.repository";
+import { formatInr } from "@/lib/formatters/currency";
 
 export default async function SellerProductsPage() {
   const supabase: any = await createClient();
@@ -98,7 +99,7 @@ export default async function SellerProductsPage() {
                   </h2>
 
                   <p className="text-sm text-muted-foreground">
-                    ₹ {product.price}
+                    {formatInr(product.price)}
                   </p>
 
                   <p className="text-sm">Stock: {product.stock_quantity}</p>

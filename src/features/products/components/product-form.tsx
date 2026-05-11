@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import {
   productSchema,
+  ProductSchemaInput,
   ProductSchemaValues,
 } from "@/features/products/schemas/product.schema";
 
@@ -46,8 +47,8 @@ export function ProductForm({
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<ProductSchemaValues>({
-    resolver: zodResolver(productSchema) as any,
+  } = useForm<ProductSchemaInput, unknown, ProductSchemaValues>({
+    resolver: zodResolver(productSchema),
 
     defaultValues: {
       title: initialValues?.title ?? "",
@@ -107,7 +108,7 @@ export function ProductForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-2">
         <label className="text-sm font-medium">Product Title</label>
 

@@ -4,11 +4,16 @@ import { notFound } from "next/navigation";
 
 import Link from "next/link";
 
-import Button from "@/components/ui/button";
-
 import { createClient } from "@/lib/supabase/server";
+import { formatInr } from "@/lib/formatters/currency";
+import {
+  getExistingCartItemId,
+  getProductDetails,
+  getRelatedProducts,
+} from "@/repositories/product.repository";
 
 import BuyNowButton from "@/features/checkout/components/buy-now-button";
+import AddToCartButton from "@/features/cart/components/add-to-cart-button";
 import ProductCard from "@/features/products/components/product-card";
 
 export default async function ProductDetailsPage({
@@ -20,50 +25,25 @@ export default async function ProductDetailsPage({
 }) {
   const { id } = await params;
 
-  const supabase: any = await createClient();
+  const supabase = await createClient();
 
-  const { data: product } = await supabase
-    .from("products")
-    .select(
-      `
-        *,
-        shops (
-          id,
-          name,
-          description
-        ),
-        categories (
-          name
-        )
-      `,
-    )
-    .eq("id", id)
-    .single();
+  const product = await getProductDetails(supabase, id);
 
   if (!product) {
     notFound();
   }
 
-  const { data: existingCartItem } = await supabase
-    .from("cart_items")
-    .select("id")
-    .eq("product_id", product.id)
-    .limit(1)
-    .maybeSingle();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  const { data: relatedProducts } = await supabase
-    .from("products")
-    .select(
-      `
-        id,
-        title,
-        price,
-        image_url
-      `,
-    )
-    .eq("category_id", product.category_id)
-    .neq("id", product.id)
-    .limit(4);
+  const existingCartItemId = await getExistingCartItemId(
+    supabase,
+    user?.id,
+    product.id
+  );
+
+  const relatedProducts = await getRelatedProducts(supabase, product);
 
   return (
     <main className="min-h-screen bg-neutral-100">
@@ -94,10 +74,6 @@ export default async function ProductDetailsPage({
                 <span className="rounded-full bg-black px-4 py-2 text-xs font-semibold text-white">
                   {product.categories?.name}
                 </span>
-
-                <span className="rounded-full border bg-white px-4 py-2 text-xs font-semibold">
-                  Local Store Product
-                </span>
               </div>
 
               <div>
@@ -112,36 +88,46 @@ export default async function ProductDetailsPage({
 
               <div>
                 <p className="text-3xl font-black sm:text-5xl">
-                  â‚¹ {product.price}
+                  {formatInr(product.price)}
                 </p>
 
                 <p className="mt-2 text-sm text-neutral-500">
                   Inclusive of all taxes
                 </p>
+
+                <p className="mt-2 text-sm font-semibold text-neutral-700">
+                  {product.stock_quantity > 0
+                    ? `In stock: ${product.stock_quantity}`
+                    : "Out of stock"}
+                </p>
               </div>
 
               <div className="rounded-3xl border bg-white p-5 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-neutral-500">Sold by</p>
+                <div>
+                  <p className="text-sm text-neutral-500">Sold by</p>
 
-                    <h2 className="mt-1 text-xl font-bold">
-                      {product.shops?.name}
-                    </h2>
-                  </div>
-
-                  <div className="rounded-full bg-green-100 px-4 py-2 text-sm font-semibold text-green-700">
-                    Available
-                  </div>
+                  <h2 className="mt-1 text-xl font-bold">
+                    {product.shops?.name ?? "Local shop"}
+                  </h2>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <Link href="/cart">
-                  <Button className="h-14 w-full text-lg font-semibold">
-                    {existingCartItem ? "View Cart" : "Add to Cart"}
-                  </Button>
-                </Link>
+                {existingCartItemId ? (
+                  <Link
+                    href="/cart"
+                    className="inline-flex h-14 w-full items-center justify-center rounded-2xl bg-black px-6 text-lg font-semibold text-white shadow-md transition-all duration-200 hover:scale-[1.02] hover:shadow-xl active:scale-95"
+                  >
+                    View Cart
+                  </Link>
+                ) : (
+                  <AddToCartButton
+                    productId={product.id}
+                    stockQuantity={product.stock_quantity ?? 0}
+                    isActive={product.is_active ?? true}
+                    className="h-14 w-full text-lg font-semibold"
+                  />
+                )}
 
                 <BuyNowButton
                   productId={product.id}
@@ -158,12 +144,9 @@ export default async function ProductDetailsPage({
             <h2 className="mb-6 text-3xl font-black">Related Products</h2>
 
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {relatedProducts.map((related: any) => (
-  <ProductCard
-    key={related.id}
-    product={related}
-  />
-))}
+              {relatedProducts.map((related) => (
+                <ProductCard key={related.id} product={related} />
+              ))}
             </div>
           </section>
         )}

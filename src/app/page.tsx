@@ -3,6 +3,9 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 
 import { createClient } from "@/lib/supabase/server";
+import { getCategories } from "@/repositories/category.repository";
+import { getCities } from "@/repositories/city.repository";
+import { getMarketplaceProducts } from "@/repositories/product.repository";
 
 import ProductCard from "@/features/products/components/product-card";
 
@@ -24,39 +27,22 @@ export default async function HomePage({
 
   const selectedCityId = cookieStore.get("selected_city_id")?.value;
 
-  const supabase: any = await createClient();
+  const supabase = await createClient();
 
-  const { data: cities } = await supabase.from("cities").select("*");
+  const cities = await getCities(supabase);
 
-  const selectedCity = cities?.find((city: any) => city.id === selectedCityId);
+  const selectedCity = cities.find((city) => city.id === selectedCityId);
 
   if (selectedCity && selectedCity.name?.trim().toLowerCase() !== "durgapur") {
     return <CityComingSoon cityName={selectedCity.name} />;
   }
 
-  let query = supabase.from("products").select(`
-      *,
-      shops (
-        name
-      ),
-      categories (
-        name
-      )
-    `);
-
-  if (params.search) {
-    query = query.ilike("title", `%${params.search}%`);
-  }
-
-  if (params.category) {
-    query = query.eq("category_id", params.category);
-  }
-
-  const { data: products } = await query.order("created_at", {
-    ascending: false,
+  const products = await getMarketplaceProducts(supabase, {
+    search: params.search,
+    categoryId: params.category,
   });
 
-  const { data: categories } = await supabase.from("categories").select("*");
+  const categories = await getCategories(supabase);
 
   return (
     <main className="min-h-screen bg-neutral-100">
@@ -86,7 +72,7 @@ export default async function HomePage({
               All
             </Link>
 
-            {categories?.map((category: any) => (
+            {categories.map((category) => (
               <Link
                 key={category.id}
                 href={`/?category=${category.id}`}
@@ -104,7 +90,7 @@ export default async function HomePage({
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12">
-        {!products || products.length === 0 ? (
+        {products.length === 0 ? (
           <div className="rounded-3xl border bg-white p-10 text-center shadow-sm sm:p-16">
             <h2 className="text-2xl font-bold">No products found</h2>
 
@@ -114,7 +100,7 @@ export default async function HomePage({
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {products.map((product: any) => (
+            {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>

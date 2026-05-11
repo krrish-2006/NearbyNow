@@ -16,7 +16,7 @@ export async function updateProductAction(
   productId: string,
   formData: FormData
 ) {
-  const supabase: any = await createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },

@@ -1,7 +1,9 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { formatInr } from "@/lib/formatters/currency";
 
 import BuyNowCheckoutForm from "@/features/checkout/components/buy-now-checkout-form";
 import { calculateCheckoutPricing } from "@/features/checkout/lib/calculate-checkout-pricing";
@@ -36,7 +38,7 @@ export default async function DirectCheckoutPage({
     redirect("/auth/login");
   }
 
-  const { data: product, error } = await supabase
+  const { data: product } = await supabase
     .from("products")
     .select(`
       id,
@@ -52,8 +54,7 @@ export default async function DirectCheckoutPage({
     .eq("id", productId)
     .single();
 
-
-if (!product) {
+  if (!product) {
     notFound();
   }
 
@@ -81,7 +82,7 @@ if (!product) {
 
         <Link
           href={`/products/${product.id}`}
-          className="text-sm font-medium underline-offset-4 hover:underline"
+          className="flex h-11 items-center justify-center rounded-full border px-5 text-sm font-semibold transition hover:bg-neutral-100"
         >
           Back to Product
         </Link>
@@ -90,11 +91,19 @@ if (!product) {
       <div className="grid gap-6 lg:grid-cols-[1fr_420px]">
         <div className="rounded-3xl border bg-background p-5 shadow-sm">
           <div className="flex gap-4">
-            <img
-              src={product.image_url || ""}
-              alt={product.title}
-              className="h-28 w-28 rounded-2xl object-cover"
-            />
+            {product.image_url ? (
+              <Image
+                src={product.image_url}
+                alt={product.title}
+                width={112}
+                height={112}
+                className="h-28 w-28 rounded-2xl object-cover"
+              />
+            ) : (
+              <div className="flex h-28 w-28 items-center justify-center rounded-2xl bg-neutral-100 text-xs text-neutral-400">
+                No Image
+              </div>
+            )}
 
             <div className="flex flex-1 flex-col justify-between">
               <div>
@@ -108,7 +117,7 @@ if (!product) {
               </div>
 
               <div className="text-lg font-bold">
-                ?{product.price}
+                {formatInr(product.price)}
               </div>
             </div>
           </div>
@@ -129,7 +138,7 @@ if (!product) {
             <div className="flex items-center justify-between text-sm">
               <span>Subtotal</span>
 
-              <span>?{pricing.subtotal}</span>
+              <span>{formatInr(pricing.subtotal)}</span>
             </div>
 
             <div className="flex items-center justify-between text-sm">
@@ -138,7 +147,7 @@ if (!product) {
               <span>
                 {pricing.platformFee === 0
                   ? "FREE"
-                  : `?${pricing.platformFee}`}
+                  : formatInr(pricing.platformFee)}
               </span>
             </div>
 
@@ -146,7 +155,7 @@ if (!product) {
               <div className="flex items-center justify-between text-lg font-bold">
                 <span>Total</span>
 
-                <span>?{pricing.total}</span>
+                <span>{formatInr(pricing.total)}</span>
               </div>
             </div>
 
@@ -164,3 +173,4 @@ if (!product) {
     </main>
   );
 }
+

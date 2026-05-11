@@ -1,6 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 
-import { Database } from "@/types/database.types";
+import { Database } from "@/types/database";
 
 const PRODUCT_IMAGE_BUCKET = "product-images";
 
@@ -49,7 +49,7 @@ export async function uploadProductImage(
       path,
       error: null,
     };
-  } catch (error) {
+  } catch {
     return {
       path: null,
       error: "Failed to upload image",

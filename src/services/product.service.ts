@@ -7,7 +7,7 @@ import {
   updateProduct,
 } from "@/repositories/product.repository";
 
-import { Database } from "@/types/database.types";
+import { Database } from "@/types/database";
 
 type ProductInsert =
   Database["public"]["Tables"]["products"]["Insert"];

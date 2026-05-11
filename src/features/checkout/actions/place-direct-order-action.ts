@@ -20,7 +20,7 @@ export async function placeDirectOrderAction(
     redirect("/");
   }
 
-  const supabase: any =
+  const supabase =
     await createClient();
 
   const {
@@ -44,7 +44,7 @@ export async function placeDirectOrderAction(
       .eq("id", productId)
       .single();
 
-  if (!product) {
+  if (!product || !product.is_active || product.stock_quantity < quantity) {
     redirect("/");
   }
 
@@ -67,14 +67,7 @@ export async function placeDirectOrderAction(
     .select()
     .single();
 
-  console.log("DIRECT ORDER:", order);
-
-  console.log(
-    "DIRECT ORDER ERROR:",
-    orderError
-  );
-
-  if (!order) {
+  if (orderError || !order) {
     redirect("/");
   }
 
@@ -89,21 +82,28 @@ export async function placeDirectOrderAction(
       price: product.price,
     });
 
-  console.log(
-    "DIRECT ORDER ITEM ERROR:",
-    orderItemError
-  );
+  if (orderItemError) {
+    redirect("/");
+  }
 
-  await supabase
+  const { error: stockError } = await supabase
     .from("products")
     .update({
       stock_quantity:
         product.stock_quantity -
         quantity,
     })
-    .eq("id", product.id);
+    .eq("id", product.id)
+    .eq("stock_quantity", product.stock_quantity);
+
+  if (stockError) {
+    redirect("/");
+  }
 
   revalidatePath("/orders");
+  revalidatePath("/");
+  revalidatePath("/products");
+  revalidatePath(`/products/${product.id}`);
 
   redirect("/orders");
 }

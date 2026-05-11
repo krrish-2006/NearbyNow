@@ -10,7 +10,19 @@ import { createClient } from "@/lib/supabase/client";
 
 import { addToCartAction } from "@/features/cart/actions/add-to-cart.action";
 
-export default function AddToCartButton({ productId }: { productId: string }) {
+interface AddToCartButtonProps {
+  productId: string;
+  stockQuantity?: number;
+  isActive?: boolean;
+  className?: string;
+}
+
+export default function AddToCartButton({
+  productId,
+  stockQuantity,
+  isActive = true,
+  className,
+}: AddToCartButtonProps) {
   const [isPending, startTransition] = useTransition();
 
   const [isInCart, setIsInCart] = useState(false);
@@ -27,13 +39,14 @@ export default function AddToCartButton({ productId }: { productId: string }) {
         return;
       }
 
-      const { data }: any = await supabase
+      const { data } = await supabase
         .from("cart_items")
         .select("id")
         .eq("user_id", user.id)
-        .eq("product_id", productId);
+        .eq("product_id", productId)
+        .maybeSingle();
 
-      setIsInCart(Array.isArray(data) && data.length > 0);
+      setIsInCart(Boolean(data));
     }
 
     checkCart();
@@ -53,9 +66,30 @@ export default function AddToCartButton({ productId }: { productId: string }) {
     });
   }
 
+  const isOutOfStock =
+    typeof stockQuantity === "number" && stockQuantity <= 0;
+
+  const isDisabled =
+    isPending ||
+    isInCart ||
+    isOutOfStock ||
+    !isActive;
+
   return (
-    <Button onClick={handleAddToCart} disabled={isPending || isInCart}>
-      {isInCart ? "Added to Cart" : isPending ? "Adding..." : "Add to Cart"}
+    <Button
+      onClick={handleAddToCart}
+      disabled={isDisabled}
+      className={className}
+    >
+      {isOutOfStock
+        ? "Out of Stock"
+        : !isActive
+          ? "Unavailable"
+          : isInCart
+            ? "Added to Cart"
+            : isPending
+              ? "Adding..."
+              : "Add to Cart"}
     </Button>
   );
 }

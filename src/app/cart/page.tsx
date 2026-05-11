@@ -5,15 +5,17 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { getCartItemsByUserId } from "@/repositories/cart.repository";
 
 import { placeOrderAction } from "@/features/orders/actions/place-order.action";
 
 import CartActions from "@/features/cart/components/cart-actions";
 
 import Button from "@/components/ui/button";
+import { formatInr } from "@/lib/formatters/currency";
 
 export default async function CartPage() {
-  const supabase: any = await createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },
@@ -23,26 +25,12 @@ export default async function CartPage() {
     redirect("/login");
   }
 
-  const { data: cartItems } = await supabase
-    .from("cart_items")
-    .select(
-      `
-        id,
-        quantity,
-        products (
-          id,
-          title,
-          price,
-          image_url
-        )
-      `,
-    )
-    .eq("user_id", user.id);
+  const cartItems = await getCartItemsByUserId(supabase, user.id);
 
   const subtotal =
-    cartItems?.reduce((total: number, item: any) => {
+    cartItems.reduce((total, item) => {
       return total + item.products.price * item.quantity;
-    }, 0) ?? 0;
+    }, 0);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
@@ -54,7 +42,7 @@ export default async function CartPage() {
         <p className="mt-3 text-neutral-500">Review your selected products.</p>
       </div>
 
-      {!cartItems || cartItems.length === 0 ? (
+      {cartItems.length === 0 ? (
         <div className="rounded-3xl border bg-white p-10 text-center shadow-sm sm:p-16">
           <h2 className="text-2xl font-bold">Your cart is empty</h2>
 
@@ -70,7 +58,7 @@ export default async function CartPage() {
       ) : (
         <div className="grid gap-10 lg:grid-cols-[1fr_350px]">
           <div className="space-y-6">
-            {cartItems.map((item: any) => (
+            {cartItems.map((item) => (
               <div
                 key={item.id}
                 className="flex flex-col gap-5 rounded-3xl border bg-white p-5 shadow-sm transition hover:shadow-lg sm:flex-row"
@@ -98,11 +86,16 @@ export default async function CartPage() {
                     </h2>
 
                     <p className="mt-2 text-lg font-semibold">
-                      ₹ {item.products?.price}
+                      {formatInr(item.products?.price)}
                     </p>
                   </div>
 
-                  <CartActions itemId={item.id} quantity={item.quantity} />
+                  <CartActions
+                    itemId={item.id}
+                    quantity={item.quantity}
+                    stockQuantity={item.products?.stock_quantity ?? 0}
+                    isActive={item.products?.is_active ?? true}
+                  />
                 </div>
               </div>
             ))}
@@ -114,7 +107,7 @@ export default async function CartPage() {
             <div className="mt-6 flex items-center justify-between text-lg">
               <span>Subtotal</span>
 
-              <span className="font-bold">₹ {subtotal}</span>
+              <span className="font-bold">{formatInr(subtotal)}</span>
             </div>
 
             <form action={placeOrderAction}>

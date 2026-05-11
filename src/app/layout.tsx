@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 
 import "./globals.css";
 
-import Navbar from "@/components/layout/navbar";
-
 import { Toaster } from "sonner";
+
+import LayoutShell from "@/components/layout/layout-shell";
 
 export const metadata: Metadata = {
   title: "NearbyNow",
-  description: "Local marketplace platform",
+  description:
+    "Local marketplace platform",
 };
 
 export default function RootLayout({
@@ -19,11 +20,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-neutral-100 text-black">
-        <Navbar />
+        <LayoutShell>
+          {children}
+        </LayoutShell>
 
-        {children}
-
-        <Toaster position="top-right" richColors />
+        <Toaster
+          position="top-right"
+          richColors
+        />
       </body>
     </html>
   );

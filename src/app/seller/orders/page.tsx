@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { formatInr } from "@/lib/formatters/currency";
 
 import { getShopBySellerId } from "@/repositories/shop.repository";
 
@@ -96,7 +97,7 @@ export default async function SellerOrdersPage() {
                     {item.orders?.status}
                   </span>
 
-                  <p className="mt-3 text-lg font-bold">₹ {item.price}</p>
+                  <p className="mt-3 text-lg font-bold">{formatInr(item.price)}</p>
                 </div>
               </div>
 

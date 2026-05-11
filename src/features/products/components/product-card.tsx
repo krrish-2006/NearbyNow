@@ -2,19 +2,25 @@ import Image from "next/image";
 
 import Link from "next/link";
 
-interface ProductCardProps {
-  product: {
-    id: string;
-    title: string;
-    price: number;
-    image_url?: string | null;
-    shops?: {
-      name?: string;
-    } | null;
-  };
-}
+import { formatInr } from "@/lib/formatters/currency";
+import type { ProductCardProduct } from "@/features/products/types/product.types";
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({
+  product,
+}: {
+  product: ProductCardProduct;
+}) {
+  const stock =
+    product.stock_quantity ?? 0;
+
+  const isSoldOut =
+    stock <= 0;
+
+  const shop =
+    Array.isArray(product.shops)
+      ? product.shops[0]
+      : product.shops;
+
   return (
     <Link
       href={`/products/${product.id}`}
@@ -34,23 +40,37 @@ export default function ProductCard({ product }: ProductCardProps) {
             No Image
           </div>
         )}
+
+        {isSoldOut && (
+          <div className="absolute left-4 top-4 rounded-full bg-red-600 px-3 py-1 text-xs font-bold text-white shadow-lg">
+            Sold Out
+          </div>
+        )}
       </div>
 
       <div className="space-y-3 p-4">
-        {product.shops?.name && (
-          <p className="text-sm text-neutral-500">{product.shops.name}</p>
+        {shop?.name && (
+          <p className="text-sm text-neutral-500">{shop.name}</p>
         )}
 
-        <h3 className="line-clamp-2 min-h-[52px] text-lg font-bold leading-snug">
+        <h3 className="line-clamp-2 text-lg font-bold leading-snug">
           {product.title}
         </h3>
 
-        <div className="flex items-center justify-between">
-          <p className="text-2xl font-black">₹ {product.price}</p>
+        <p className="line-clamp-2 text-sm text-neutral-500">
+          {product.description}
+        </p>
 
-          <span className="rounded-full bg-black px-3 py-1 text-xs font-semibold text-white">
-            Nearby
-          </span>
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="text-2xl font-black">{formatInr(product.price)}</p>
+
+            {!isSoldOut && (
+              <p className="mt-1 text-xs text-neutral-500">
+                In stock: {stock}
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </Link>

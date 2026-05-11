@@ -9,7 +9,7 @@ import { getShopBySellerId } from "@/repositories/shop.repository";
 export async function deleteProductAction(
   productId: string
 ) {
-  const supabase: any = await createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },

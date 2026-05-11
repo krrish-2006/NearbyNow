@@ -21,3 +21,4 @@ export const productSchema = z.object({
 });
 
 export type ProductSchemaValues = z.infer<typeof productSchema>;
+export type ProductSchemaInput = z.input<typeof productSchema>;

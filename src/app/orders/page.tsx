@@ -1,12 +1,13 @@
-import Link from "next/link";
-
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { formatInr } from "@/lib/formatters/currency";
+import { getOrdersByUserId } from "@/repositories/order.repository";
+
 import EmptyState from "@/components/shared/empty-state";
 
 export default async function OrdersPage() {
-  const supabase: any =
+  const supabase =
     await createClient();
 
   const {
@@ -17,24 +18,7 @@ export default async function OrdersPage() {
     redirect("/login");
   }
 
-  const { data: orders } =
-    await supabase
-      .from("orders")
-      .select(`
-        *,
-        order_items (
-          id,
-          quantity,
-          price,
-          products (
-            title
-          )
-        )
-      `)
-      .eq("user_id", user.id)
-      .order("created_at", {
-        ascending: false,
-      });
+  const orders = await getOrdersByUserId(supabase, user.id);
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
@@ -48,8 +32,7 @@ export default async function OrdersPage() {
         </p>
       </div>
 
-      {!orders ||
-      orders.length === 0 ? (
+      {orders.length === 0 ? (
         <EmptyState
   title="No orders yet"
   description="Start shopping to place your first order."
@@ -59,7 +42,7 @@ export default async function OrdersPage() {
       ) : (
         <div className="space-y-8">
           {orders.map(
-            (order: any) => (
+            (order) => (
               <div
                 key={order.id}
                 className="rounded-3xl border bg-white p-6"
@@ -83,17 +66,14 @@ export default async function OrdersPage() {
                     </span>
 
                     <p className="mt-3 text-xl font-bold">
-                      ?{" "}
-                      {
-                        order.total_amount
-                      }
+                      {formatInr(order.total_amount)}
                     </p>
                   </div>
                 </div>
 
                 <div className="mt-6 space-y-4">
-                  {order.order_items?.map(
-                    (item: any) => (
+                  {order.order_items.map(
+                    (item) => (
                       <div
                         key={item.id}
                         className="flex items-center justify-between rounded-2xl border p-4"
@@ -116,8 +96,7 @@ export default async function OrdersPage() {
                         </div>
 
                         <p className="text-lg font-bold">
-                          ?{" "}
-                          {item.price}
+                          {formatInr(item.price)}
                         </p>
                       </div>
                     )

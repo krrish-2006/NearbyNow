@@ -8,7 +8,7 @@ export async function updateOrderStatusAction(
   orderId: string,
   status: string
 ) {
-  const supabase: any =
+  const supabase =
     await createClient();
 
   await supabase

@@ -11,9 +11,13 @@ import { updateCartQuantityAction } from "@/features/cart/actions/update-cart-qu
 export default function CartActions({
   itemId,
   quantity,
+  stockQuantity,
+  isActive,
 }: {
   itemId: string;
   quantity: number;
+  stockQuantity: number;
+  isActive: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
 
@@ -22,8 +26,24 @@ export default function CartActions({
       return;
     }
 
+    if (!isActive) {
+      toast.error("This product is unavailable");
+
+      return;
+    }
+
+    if (nextQuantity > stockQuantity) {
+      toast.error(`Only ${stockQuantity} in stock`);
+
+      return;
+    }
+
     startTransition(async () => {
-      await updateCartQuantityAction(itemId, nextQuantity);
+      const result = await updateCartQuantityAction(itemId, nextQuantity);
+
+      if (!result?.success) {
+        toast.error(result?.error || "Could not update quantity");
+      }
     });
   }
 
@@ -50,7 +70,7 @@ export default function CartActions({
       </span>
 
       <button
-        disabled={isPending}
+        disabled={isPending || !isActive || quantity >= stockQuantity}
         onClick={() => updateQuantity(quantity + 1)}
         className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border-2 border-black bg-white text-2xl font-black shadow-md transition-all duration-200 hover:scale-125 hover:bg-black hover:text-white hover:shadow-2xl active:scale-90 disabled:opacity-50"
       >

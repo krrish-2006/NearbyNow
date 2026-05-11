@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 export async function placeOrderAction() {
-  const supabase: any = await createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },
@@ -28,21 +28,32 @@ export async function placeOrderAction() {
           id,
           title,
           price,
-          shop_id
+          shop_id,
+          stock_quantity,
+          is_active
         )
       `,
     )
     .eq("user_id", user.id);
 
-  console.log("CART ITEMS:", cartItems);
-
-  console.log("CART ERROR:", cartError);
-
-  if (!cartItems || cartItems.length === 0) {
+  if (cartError || !cartItems || cartItems.length === 0) {
     return;
   }
 
-  const totalAmount = cartItems.reduce((total: number, item: any) => {
+  const hasUnavailableItem = cartItems.some((item) => {
+    return (
+      !item.products.is_active ||
+      item.quantity > (item.products.stock_quantity ?? 0)
+    );
+  });
+
+  if (hasUnavailableItem) {
+    revalidatePath("/cart");
+
+    return;
+  }
+
+  const totalAmount = cartItems.reduce((total, item) => {
     return total + Number(item.products.price) * item.quantity;
   }, 0);
 
@@ -56,36 +67,48 @@ export async function placeOrderAction() {
     .select()
     .single();
 
-  console.log("ORDER:", order);
-
-  console.log("ORDER ERROR:", orderError);
-
-  if (!order) {
+  if (orderError || !order) {
     return;
   }
 
-  const orderItems = cartItems.map((item: any) => ({
+  const orderItems = cartItems.map((item) => ({
     order_id: order.id,
     product_id: item.product_id,
     quantity: item.quantity,
     price: item.products.price,
   }));
 
-  console.log("ORDER ITEMS:", orderItems);
-
   const { error: orderItemsError } = await supabase
     .from("order_items")
     .insert(orderItems);
-
-  console.log("ORDER ITEMS ERROR:", orderItemsError);
 
   if (orderItemsError) {
     return;
   }
 
+  for (const item of cartItems) {
+    const { error: stockError } = await supabase
+      .from("products")
+      .update({
+        stock_quantity: item.products.stock_quantity - item.quantity,
+      })
+      .eq("id", item.products.id)
+      .eq("stock_quantity", item.products.stock_quantity);
+
+    if (stockError) {
+      return;
+    }
+  }
+
   await supabase.from("cart_items").delete().eq("user_id", user.id);
 
   revalidatePath("/cart");
+  revalidatePath("/");
+  revalidatePath("/products");
+
+  for (const item of cartItems) {
+    revalidatePath(`/products/${item.products.id}`);
+  }
 
   redirect("/orders");
 }

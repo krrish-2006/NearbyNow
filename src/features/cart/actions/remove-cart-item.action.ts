@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function removeCartItemAction(
   cartItemId: string
 ) {
-  const supabase: any =
+  const supabase =
     await createClient();
 
   await supabase

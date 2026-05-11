@@ -1,26 +1,12 @@
-import Image from "next/image";
-import Link from "next/link";
-
 import { createClient } from "@/lib/supabase/server";
+import { getMarketplaceProducts } from "@/repositories/product.repository";
+
 import ProductCard from "@/features/products/components/product-card";
 
 export default async function ProductsPage() {
-  const supabase: any = await createClient();
+  const supabase = await createClient();
 
-  const { data: products } = await supabase
-    .from("products")
-    .select(`
-      id,
-      title,
-      price,
-      image_url,
-      shops (
-        name
-      )
-    `)
-    .order("created_at", {
-      ascending: false,
-    });
+  const products = await getMarketplaceProducts(supabase);
 
   return (
     <main className="mx-auto max-w-7xl space-y-10 px-6 py-10">
@@ -46,12 +32,12 @@ export default async function ProductsPage() {
         </div>
       ) : (
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {products.map((product: any) => (
-  <ProductCard
-    key={product.id}
-    product={product}
-  />
-))}
+          {products.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+            />
+          ))}
         </div>
       )}
     </main>

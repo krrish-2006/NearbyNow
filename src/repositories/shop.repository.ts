@@ -1,11 +1,11 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 
-import { Database, Tables } from "@/types/database.types";
+import { Database, Tables } from "@/types/database";
 
 type Shop = Tables<"shops">;
 
 export async function getShopBySellerId(
-  supabase: SupabaseClient<any>,
+  supabase: SupabaseClient<Database>,
   sellerProfileId: string
 ): Promise<Shop | null> {
   const { data, error } = await supabase
@@ -22,7 +22,7 @@ export async function getShopBySellerId(
 }
 
 export async function createShop(
-  supabase: SupabaseClient<any>,
+  supabase: SupabaseClient<Database>,
   values: Database["public"]["Tables"]["shops"]["Insert"]
 ): Promise<Shop | null> {
   const { data, error } = await supabase

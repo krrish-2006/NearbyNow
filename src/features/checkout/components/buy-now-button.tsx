@@ -19,21 +19,43 @@ export default function BuyNowButton({
 }: BuyNowButtonProps) {
   const router = useRouter();
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] =
+    useState(false);
 
-  const isOutOfStock = stockQuantity <= 0;
+  
 
-  const isDisabled = isOutOfStock || !isActive || isLoading;
+  const isOutOfStock =
+    stockQuantity <= 0;
+
+  const isDisabled =
+    isOutOfStock ||
+    !isActive ||
+    isLoading;
 
   const handleBuyNow = () => {
     setIsLoading(true);
 
-    router.push(`/checkout/direct?productId=${productId}&quantity=1`);
+    router.push(
+      `/checkout/direct?productId=${productId}`,
+    );
   };
 
   return (
-    <Button type="button" onClick={handleBuyNow} disabled={isDisabled}>
-      {isOutOfStock ? "Out of Stock" : isLoading ? "Redirecting..." : "Buy Now"}
-    </Button>
+    <div className="space-y-3">
+      <Button
+        type="button"
+        onClick={handleBuyNow}
+        disabled={isDisabled}
+        className="h-14 w-full text-lg font-semibold"
+      >
+        {isOutOfStock
+          ? "Out of Stock"
+          : isLoading
+            ? "Redirecting..."
+            : "Buy Now"}
+      </Button>
+    </div>
   );
 }
+
+

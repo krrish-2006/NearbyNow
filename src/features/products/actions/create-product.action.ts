@@ -24,7 +24,7 @@ import {
 export async function createProductAction(
   formData: FormData
 ) {
-  const supabase: any = await createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },
