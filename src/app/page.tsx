@@ -1,6 +1,11 @@
 import Link from "next/link";
 
-import { cookies } from "next/headers";
+import {
+  cookies,
+  headers,
+} from "next/headers";
+
+import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 import { getCategories } from "@/repositories/category.repository";
@@ -19,9 +24,32 @@ export default async function HomePage({
   searchParams: Promise<{
     search?: string;
     category?: string;
+    code?: string;
   }>;
 }) {
   const params = await searchParams;
+
+  if (params.code) {
+    const headersList = await headers();
+
+    const host =
+      headersList.get("x-forwarded-host") ?? headersList.get("host") ?? "";
+
+    const protocol =
+      headersList.get("x-forwarded-proto") ??
+      (host.startsWith("localhost") || host.startsWith("127.")
+        ? "http"
+        : "https");
+
+    const callbackOrigin =
+      host.startsWith("localhost") || host.startsWith("127.")
+        ? `${protocol}://${host}`
+        : "https://www.nearbynow.store";
+
+    redirect(
+      `${callbackOrigin}/auth/callback?code=${encodeURIComponent(params.code)}`,
+    );
+  }
 
   const cookieStore = await cookies();
 
