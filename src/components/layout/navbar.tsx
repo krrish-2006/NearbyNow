@@ -235,35 +235,35 @@ export default function Navbar() {
         <div className="flex flex-wrap items-center justify-end gap-3">
           {authLoaded && (
             <>
-              {profile && (
-              <div className="flex rounded-full border bg-neutral-100 p-1">
-                <Link
-                  href="/"
-                  className={`flex h-10 items-center justify-center rounded-full px-5 text-sm font-semibold transition ${
-                    !isSeller
-                      ? "bg-black text-white"
-                      : "text-neutral-600 hover:bg-white"
-                  }`}
-                >
-                  Buyer
-                </Link>
+              {profile && isSellerAccount && (
+                <div className="flex rounded-full border bg-neutral-100 p-1">
+                  <Link
+                    href="/"
+                    className={`flex h-10 items-center justify-center rounded-full px-5 text-sm font-semibold transition ${
+                      !isSeller
+                        ? "bg-black text-white"
+                        : "text-neutral-600 hover:bg-white"
+                    }`}
+                  >
+                    Buyer
+                  </Link>
 
-                <button
-                  type="button"
-                  onClick={handleSellerSwitch}
-                  disabled={isSellerSwitchPending}
-                  className={`flex h-10 items-center justify-center rounded-full px-5 text-sm font-semibold transition ${
-                    isSeller
-                      ? "bg-black text-white"
-                      : "text-neutral-600 hover:bg-white"
-                  }`}
-                >
-                  Seller
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    onClick={handleSellerSwitch}
+                    disabled={isSellerSwitchPending}
+                    className={`flex h-10 items-center justify-center rounded-full px-5 text-sm font-semibold transition ${
+                      isSeller
+                        ? "bg-black text-white"
+                        : "text-neutral-600 hover:bg-white"
+                    }`}
+                  >
+                    Seller
+                  </button>
+                </div>
               )}
 
-              {!isSeller && !profile && !isSellerAccount && (
+              {!isSeller && !isSellerAccount && (
                 <BecomeSellerButton />
               )}
             </>
