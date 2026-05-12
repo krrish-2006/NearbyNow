@@ -139,6 +139,13 @@ export default async function SellerOrdersPage() {
                 <p>Payment: {item.orders?.payment_method ?? "COD"}</p>
 
                 <p>
+                  Payment Status:{" "}
+                  {formatOrderStatus(item.orders?.payment_status ?? "COD_PENDING")}
+                </p>
+
+                <p>Shop: {item.shops?.name ?? sellerShop.name}</p>
+
+                <p>
                   Buyer:{" "}
                   {item.orders?.user_id
                     ? item.orders.user_id.slice(0, 8)
@@ -153,6 +160,10 @@ export default async function SellerOrdersPage() {
                 </p>
 
                 <p>Order Total: {formatInr(item.orders?.total_amount ?? 0)}</p>
+
+                <p>
+                  Updated: {new Date(item.status_updated_at).toLocaleString()}
+                </p>
               </div>
 
               <SellerOrderStatusControls

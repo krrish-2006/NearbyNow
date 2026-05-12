@@ -44,8 +44,8 @@
 2. `placeOrderAction` fetches cart items for page revalidation.
 3. Action validates the cart is not empty.
 4. Action calls the `place_cart_cod_order` Postgres RPC.
-5. RPC locks product rows, validates every item is active and in stock, creates the order, creates `PENDING` order items, decrements stock, and clears the cart atomically.
-6. The cart may include products from multiple shops because fulfillment status lives on each order item.
+5. RPC locks product rows, validates every item is active and in stock, creates the order, creates `PENDING` order items with their owning `shop_id`, decrements stock, and clears the cart atomically.
+6. The cart may include products from multiple shops because fulfillment ownership and status live on each order item.
 7. Action revalidates cart, marketplace, products, product detail pages, and orders.
 8. Buyer is redirected to `/orders`.
 9. If checkout fails, the cart form shows a structured error.
@@ -58,7 +58,7 @@
 4. Buyer places order.
 5. `placeDirectOrderAction` validates auth, product status, and stock.
 6. Action calls the `place_direct_cod_order` Postgres RPC.
-7. RPC locks the product row, creates the order and order item, and decrements stock atomically.
+7. RPC locks the product row, creates the order and shop-owned order item, and decrements stock atomically.
 8. Action revalidates affected pages.
 9. Buyer is redirected to `/orders`.
 10. If checkout fails, the direct checkout form shows a structured error.
@@ -89,9 +89,10 @@
 3. Seller sees order items for products from their own shop.
 4. Seller status changes validate against the shared order status list.
 5. Sellers can choose Pending, Confirmed, Completed, or Cancelled.
-6. The database allows sellers to update only `order_items.status` for their own products.
-7. The buyer orders page reads the same `order_items.status`, so seller status changes show there too.
-8. One seller cannot update another seller's items in the same multi-shop order.
+6. The database allows sellers to update only `order_items.status` for their own shop-owned line items.
+7. Status updates set lifecycle timestamps and sync the parent order/COD payment status.
+8. The buyer orders page reads the same item and order status data, so seller status changes show there too.
+9. One seller cannot update another seller's items in the same multi-shop order.
 
 ## Auth/Role Flow
 

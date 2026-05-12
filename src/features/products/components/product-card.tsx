@@ -7,8 +7,10 @@ import type { ProductCardProduct } from "@/features/products/types/product.types
 
 export default function ProductCard({
   product,
+  priority = false,
 }: {
   product: ProductCardProduct;
+  priority?: boolean;
 }) {
   const stock =
     product.stock_quantity ?? 0;
@@ -32,6 +34,7 @@ export default function ProductCard({
             src={product.image_url}
             alt={product.title}
             fill
+            priority={priority}
             sizes="400px"
             className="object-cover transition duration-300 group-hover:scale-105"
           />

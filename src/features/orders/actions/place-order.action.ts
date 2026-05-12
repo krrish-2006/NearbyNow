@@ -5,6 +5,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import {
+  logServerEvent,
+  reportServerError,
+} from "@/lib/monitoring/server";
 import { getCartItemsByUserId } from "@/repositories/cart.repository";
 import type { ActionResult } from "@/features/actions/action-result";
 import { validateCartHasItems } from "@/features/checkout/lib/cart-checkout";
@@ -31,16 +35,32 @@ export async function placeOrderAction(): Promise<ActionResult> {
   const cartValidation = validateCartHasItems(cartItems);
 
   if (!cartValidation.success) {
+    logServerEvent("cart checkout validation failed", {
+      userId: user.id,
+      reason: cartValidation.error,
+    });
+
     return cartValidation;
   }
 
   const result = await placeCartCodOrder(supabase);
 
   if (!result.success) {
+    await reportServerError(result.error, {
+      action: "placeOrderAction",
+      userId: user.id,
+    });
+
     revalidatePath("/cart");
 
     return result;
   }
+
+  logServerEvent("cart checkout completed", {
+    action: "placeOrderAction",
+    userId: user.id,
+    orderId: result.data?.orderId ?? null,
+  });
 
   revalidatePath("/cart");
   revalidatePath("/");

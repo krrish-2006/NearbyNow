@@ -9,6 +9,14 @@ export const ORDER_STATUSES = [
 
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
+export const COD_PAYMENT_STATUSES = [
+  "COD_PENDING",
+  "COD_COLLECTED",
+  "CANCELLED",
+] as const;
+
+export type CodPaymentStatus = (typeof COD_PAYMENT_STATUSES)[number];
+
 export type SellerOrderStatusMetrics = {
   inProgressCount: number;
   completedCount: number;
@@ -86,7 +94,7 @@ export function deriveOrderStatusFromItems(statuses: string[]): OrderStatus {
 }
 
 export function formatOrderStatus(status: string): string {
-  if (!isOrderStatus(status)) {
+  if (!isOrderStatus(status) && !isCodPaymentStatus(status)) {
     return status;
   }
 
@@ -95,6 +103,24 @@ export function formatOrderStatus(status: string): string {
     .split("_")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
+}
+
+export function isCodPaymentStatus(status: string): status is CodPaymentStatus {
+  return COD_PAYMENT_STATUSES.includes(status as CodPaymentStatus);
+}
+
+export function deriveCodPaymentStatusFromOrderStatus(
+  status: OrderStatus,
+): CodPaymentStatus {
+  if (status === "COMPLETED") {
+    return "COD_COLLECTED";
+  }
+
+  if (status === "CANCELLED") {
+    return "CANCELLED";
+  }
+
+  return "COD_PENDING";
 }
 
 export function isCompletedOrderStatus(status: string): boolean {

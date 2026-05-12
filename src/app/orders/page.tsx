@@ -125,6 +125,10 @@ export default async function OrdersPage() {
                             }
                           </p>
 
+                          <p className="mt-1 text-sm text-neutral-500">
+                            Shop: {item.shops?.name ?? "Local shop"}
+                          </p>
+
                           <p className="mt-2 inline-flex rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-700">
                             {formatOrderStatus(item.status)}
                           </p>

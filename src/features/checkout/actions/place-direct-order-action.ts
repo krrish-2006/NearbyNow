@@ -4,6 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import {
+  logServerEvent,
+  reportServerError,
+} from "@/lib/monitoring/server";
 import type { ActionResult } from "@/features/actions/action-result";
 import { placeDirectCodOrder } from "@/features/checkout/services/checkout.service";
 
@@ -79,8 +83,21 @@ export async function placeDirectOrderAction(
   });
 
   if (!result.success) {
+    await reportServerError(result.error, {
+      action: "placeDirectOrderAction",
+      userId: user.id,
+      productId: product.id,
+    });
+
     return result;
   }
+
+  logServerEvent("direct checkout completed", {
+    action: "placeDirectOrderAction",
+    userId: user.id,
+    productId: product.id,
+    orderId: result.data?.orderId ?? null,
+  });
 
   revalidatePath("/orders");
   revalidatePath("/seller/orders");

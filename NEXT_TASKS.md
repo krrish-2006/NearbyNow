@@ -2,18 +2,18 @@
 
 ## Highest Priority
 
-1. Push `supabase/migrations/20260511143000_create_seller_cart_quantity_rpc.sql` after approval.
-2. Start local Supabase/Docker and run `supabase/tests/checkout_rls.test.sql`.
+1. Push and verify any new migration before deploying features that depend on it.
+2. Expand Playwright E2E coverage to authenticated buyer checkout and seller status updates with dedicated test users.
 3. Add local Supabase integration coverage for wishlist RLS, seller wishlist metrics, and seller cart quantity metrics.
 4. Audit live RLS behavior after real buyer/seller test accounts place orders and wishlist products.
-5. Add richer seller fulfillment details such as cancellation reasons or pickup windows.
+5. Add richer seller fulfillment details such as cancellation reasons, pickup windows, or seller notes.
 
 ## Architecture Improvements
 
 1. Standardize repository return shapes and error handling.
 2. Continue moving checkout business rules into the checkout service layer.
 3. Add typed repositories for any remaining route-level Supabase reads.
-4. Expand structured error surfaces for any remaining critical mutations.
+4. Add an external error webhook/log drain when you want monitoring outside Vercel logs.
 5. Add better seller action feedback after city/product/order updates.
 
 ## Product Improvements

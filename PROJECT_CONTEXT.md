@@ -23,6 +23,8 @@ The app has two main modes:
 ```bash
 npm run dev
 npm run build
+npm run test
+npm run test:e2e
 npx tsc --noEmit
 npm run lint
 npx supabase migration list
@@ -67,6 +69,11 @@ Recent architecture improvement:
 - Product create/edit uses a cleaner image picker, enforces a 50-word description limit, and supports replacing the primary image during edit.
 - Wishlist/favorites support has been added with buyer toggle UI, RLS migration, repository helpers, and seller wishlist metrics.
 - Seller Orders shows real metrics for cart quantity, wishlisted products, and completed orders.
+- Local Supabase SQL integration tests have been run successfully against a Docker-backed local database.
+- Multi-shop fulfillment is now explicit: each `order_items` row stores its owning `shop_id`, item lifecycle timestamps, and item status.
+- Order status and COD payment status are derived in Postgres from the current item statuses.
+- Vercel Analytics, Speed Insights, structured server logs, and an app error boundary are in place.
+- Playwright browser E2E smoke tests cover the marketplace shell and protected route redirects.
 
 ## Key Files
 
@@ -109,6 +116,7 @@ Important relationships:
 - Users own cart items.
 - Users own orders.
 - Orders have order items.
+- Order items have an owning shop for seller-scoped fulfillment.
 - Users own wishlist rows, and each buyer can wishlist a product only once.
 
 Important RLS/policy note:
@@ -122,7 +130,8 @@ Important RLS/policy note:
 - Wishlist table/RLS and the seller-owned wishlist metric RPC were added in `20260511121617_create_wishlist_system.sql`.
 - `20260511121617_create_wishlist_system.sql` has been pushed to the linked remote Supabase project.
 - Seller cart quantity metric RPC was added in `20260511143000_create_seller_cart_quantity_rpc.sql`.
-- `20260511143000_create_seller_cart_quantity_rpc.sql` is pending and still needs to be pushed before Orders in Cart works against the linked remote Supabase database.
+- Seller order item RPC, status update RPC, buyer order item RPC, and RLS recursion fixes have been pushed.
+- Multi-shop fulfillment and order/payment lifecycle hardening live in `20260512103000_formalize_multishop_fulfillment.sql`.
 
 Migration hygiene:
 
@@ -139,6 +148,8 @@ Migration hygiene:
 - Direct Buy Now decrements stock by purchased quantity through an atomic Postgres RPC.
 - Cart checkout decrements stock for cart quantities through an atomic Postgres RPC.
 - Cart checkout can include products from multiple shops. Each order item starts as `PENDING`.
+- Each order item stores the seller shop that fulfills it.
+- Seller status changes update item lifecycle timestamps and automatically sync the parent order/COD payment status.
 - Cart quantity controls prevent increasing above stock.
 - Add-to-cart prevents adding more than available stock.
 - Relevant pages are revalidated after stock changes:
@@ -154,12 +165,11 @@ The architecture is improved but not final-production yet.
 
 Next best improvements:
 
-1. Push the pending seller cart quantity RPC migration after approval.
-2. Run the prepared local Supabase integration tests after starting local Supabase/Docker.
-3. Continue auditing live RLS behavior after real buyer/seller testing.
-4. Add better empty/loading/error states.
-5. Consider richer seller fulfillment workflows such as cancellation reasons or pickup windows.
-6. Consider a true multi-image product model if product galleries become important.
+1. Continue auditing live RLS behavior after real buyer/seller testing.
+2. Expand browser E2E coverage to authenticated checkout/status flows with dedicated test users.
+3. Configure an external error drain/webhook if the project upgrades beyond Vercel Hobby-level observability.
+4. Add richer seller fulfillment workflows such as cancellation reasons or pickup windows.
+5. Consider a true multi-image product model if product galleries become important.
 
 ## Current Honest Architecture Rating
 
@@ -168,7 +178,7 @@ Next best improvements:
 - Reusability: 9.5/10
 - Scalability: 9.5/10
 - Type safety: 9/10
-- Production readiness: 9.5/10
+- Production readiness: 9.7/10
 
 ## How To Rebuild Context In A New Codex Session
 

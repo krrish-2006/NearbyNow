@@ -40,14 +40,21 @@ export async function getOrdersByUserId(
         platform_fee: item.platform_fee,
         status: item.order_status,
         created_at: item.order_created_at,
+        updated_at: item.order_updated_at,
         order_items: [
           {
             id: item.order_item_id,
             quantity: item.quantity,
             price: item.price,
             status: item.item_status,
+            status_updated_at: item.item_status_updated_at,
+            shop_id: item.shop_id,
             products: {
               title: item.product_title,
+            },
+            shops: {
+              id: item.shop_id,
+              name: item.shop_name,
             },
           },
         ],
@@ -61,8 +68,14 @@ export async function getOrdersByUserId(
       quantity: item.quantity,
       price: item.price,
       status: item.item_status,
+      status_updated_at: item.item_status_updated_at,
+      shop_id: item.shop_id,
       products: {
         title: item.product_title,
+      },
+      shops: {
+        id: item.shop_id,
+        name: item.shop_name,
       },
     });
   }
@@ -87,14 +100,25 @@ export async function getSellerOrderItemsByShopId(
     quantity: item.quantity,
     price: item.price,
     status: item.status,
+    shop_id: item.shop_id,
+    status_updated_at: item.status_updated_at,
+    confirmed_at: item.confirmed_at,
+    completed_at: item.completed_at,
+    cancelled_at: item.cancelled_at,
     products: {
       id: item.product_id,
       title: item.product_title,
+    },
+    shops: {
+      id: item.shop_id,
+      name: item.shop_name,
     },
     orders: {
       id: item.order_id,
       user_id: item.buyer_user_id,
       payment_method: item.payment_method,
+      payment_status: item.payment_status,
+      status: item.order_status,
       created_at: item.ordered_at,
       total_amount: item.order_total_amount,
     },

@@ -23,6 +23,7 @@
 - `orders.user_id` references auth users.
 - `order_items.order_id` references `orders.id`.
 - `order_items.product_id` references `products.id`.
+- `order_items.shop_id` references `shops.id` and stores the seller shop responsible for that line item.
 - `wishlists.user_id` references auth users.
 - `wishlists.product_id` references `products.id`.
 
@@ -36,6 +37,7 @@
 - Buyers should only read/write/delete their own wishlist rows.
 - Sellers should not directly mutate wishlist rows.
 - Seller wishlist metrics are exposed through `get_shop_wishlist_count`, which only counts products owned by the current seller's shop.
+- Sellers read order data through security-definer RPCs scoped to `order_items.shop_id`, avoiding recursive orders/order_items policies.
 
 ## Important Migration Notes
 
@@ -56,7 +58,7 @@ Known renamed migrations:
 
 The public shop select policy was added so product detail and product cards can show shop names to buyers.
 
-`20260511143000_create_seller_cart_quantity_rpc.sql` is pending and must be pushed before remote Orders in Cart counts can work.
+`20260512103000_formalize_multishop_fulfillment.sql` adds explicit shop-owned fulfillment, item lifecycle timestamps, derived parent order status, and normalized COD payment status.
 
 ## Stock Behavior
 
@@ -67,6 +69,10 @@ The public shop select policy was added so product detail and product cards can 
 - Successful cart and direct orders decrement stock through atomic Postgres RPCs.
 - Cart checkout supports products from multiple shops.
 - `order_items.status` tracks seller fulfillment status per product line.
+- `order_items.shop_id` records which seller shop owns that line, even when the parent order contains multiple shops.
+- `order_items.status_updated_at`, `confirmed_at`, `completed_at`, and `cancelled_at` record fulfillment lifecycle timestamps.
+- Parent `orders.status` is derived from item statuses.
+- COD `orders.payment_status` is derived as `COD_PENDING`, `COD_COLLECTED`, or `CANCELLED`.
 - Sellers can view order items for their own shop products.
 - Sellers can update only the status of their own shop's order items.
 - Buyers can only read/write their own cart items through cart item RLS policies.
@@ -77,8 +83,6 @@ The public shop select policy was added so product detail and product cards can 
 
 ## Future Database Work
 
-- Push the pending seller cart quantity RPC migration after approval.
-- Run the prepared local Supabase integration tests around stock race conditions and RLS after local Supabase is running.
 - Add local Supabase integration tests for wishlist RLS and seller wishlist metrics.
 - Audit live RLS behavior with real buyer/seller test accounts.
 - Audit RLS policies after each new feature.

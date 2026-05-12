@@ -3,6 +3,10 @@
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
+import {
+  logServerEvent,
+  reportServerError,
+} from "@/lib/monitoring/server";
 import type { ActionResult } from "@/features/actions/action-result";
 import { isOrderStatus } from "@/features/orders/lib/order-status";
 
@@ -40,6 +44,13 @@ export async function updateOrderItemStatusAction(
   );
 
   if (error) {
+    await reportServerError(error, {
+      action: "updateOrderItemStatusAction",
+      userId: user.id,
+      orderItemId,
+      status,
+    });
+
     return {
       success: false,
       error: error.message,
@@ -47,6 +58,13 @@ export async function updateOrderItemStatusAction(
   }
 
   if (!updated) {
+    logServerEvent("seller order item status update rejected", {
+      action: "updateOrderItemStatusAction",
+      userId: user.id,
+      orderItemId,
+      status,
+    });
+
     return {
       success: false,
       error: "Order not found",
@@ -56,6 +74,13 @@ export async function updateOrderItemStatusAction(
   revalidatePath("/seller/orders");
 
   revalidatePath("/orders");
+
+  logServerEvent("seller order item status updated", {
+    action: "updateOrderItemStatusAction",
+    userId: user.id,
+    orderItemId,
+    status,
+  });
 
   return {
     success: true,

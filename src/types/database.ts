@@ -90,31 +90,46 @@ export type Database = {
       }
       order_items: {
         Row: {
+          cancelled_at: string | null
+          completed_at: string | null
+          confirmed_at: string | null
           created_at: string
           id: string
           order_id: string
           price: number
           product_id: string
           quantity: number
+          shop_id: string
           status: string
+          status_updated_at: string
         }
         Insert: {
+          cancelled_at?: string | null
+          completed_at?: string | null
+          confirmed_at?: string | null
           created_at?: string
           id?: string
           order_id: string
           price: number
           product_id: string
           quantity: number
+          shop_id?: string
           status?: string
+          status_updated_at?: string
         }
         Update: {
+          cancelled_at?: string | null
+          completed_at?: string | null
+          confirmed_at?: string | null
           created_at?: string
           id?: string
           order_id?: string
           price?: number
           product_id?: string
           quantity?: number
+          shop_id?: string
           status?: string
+          status_updated_at?: string
         }
         Relationships: [
           {
@@ -131,6 +146,13 @@ export type Database = {
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "order_items_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
         ]
       }
       orders: {
@@ -143,6 +165,7 @@ export type Database = {
           platform_fee: number
           status: string
           total_amount: number
+          updated_at: string
           user_id: string
         }
         Insert: {
@@ -154,6 +177,7 @@ export type Database = {
           platform_fee?: number
           status?: string
           total_amount?: number
+          updated_at?: string
           user_id: string
         }
         Update: {
@@ -165,6 +189,7 @@ export type Database = {
           platform_fee?: number
           status?: string
           total_amount?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -353,11 +378,19 @@ export type Database = {
           quantity: number
           price: number
           status: string
+          status_updated_at: string
+          confirmed_at: string | null
+          completed_at: string | null
+          cancelled_at: string | null
           product_id: string
           product_title: string
+          shop_id: string
+          shop_name: string
           order_id: string
           buyer_user_id: string
           payment_method: string
+          payment_status: string
+          order_status: string
           ordered_at: string
           order_total_amount: number
         }[]
@@ -374,12 +407,30 @@ export type Database = {
           platform_fee: number
           order_status: string
           order_created_at: string
+          order_updated_at: string
           order_item_id: string
           quantity: number
           price: number
           item_status: string
+          item_status_updated_at: string
+          shop_id: string
+          shop_name: string
           product_title: string
         }[]
+      }
+      set_order_item_fulfillment_defaults: {
+        Args: Record<PropertyKey, never>
+        Returns: unknown
+      }
+      sync_order_status_from_items: {
+        Args: {
+          p_order_id: string
+        }
+        Returns: undefined
+      }
+      sync_order_status_from_items_trigger: {
+        Args: Record<PropertyKey, never>
+        Returns: unknown
       }
       get_shop_cart_quantity: {
         Args: {

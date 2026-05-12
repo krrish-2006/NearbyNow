@@ -64,13 +64,15 @@ Server Actions should handle mutations:
 - Wishlist/favorites use a migration, repository helpers, Server Action, and product-detail toggle UI.
 - Seller Orders uses repository-backed metrics for cart quantity, wishlisted products, and completed orders.
 - Product create/edit uses shared schema validation for the 50-word description limit and maximum selected images.
+- Multi-shop checkout is modeled through shop-owned order items, so each seller owns only the lines they must fulfill.
+- Order item status changes now sync parent order status and COD payment status in Postgres.
+- Vercel Analytics, Speed Insights, structured server logs, and a route error boundary provide a baseline monitoring layer.
+- Playwright E2E tests cover the marketplace shell and protected buyer/seller route redirects.
 
 ## Current Weak Areas
 
-- Tests are still unit/static checks; RLS and checkout need local Supabase integration tests.
-- Prepared local Supabase integration tests still need to be run against a reset local database.
-- The seller cart quantity RPC migration is prepared but still needs to be pushed to the linked Supabase database.
-- Seller fulfillment is item-scoped; richer operational states like pickup windows or cancellation reasons are not modeled yet.
+- Authenticated browser E2E coverage still needs dedicated test users and stable seeded test data.
+- Seller fulfillment has item ownership and lifecycle timestamps, but richer operational details like pickup windows or cancellation reasons are not modeled yet.
 - Product storage currently saves one primary image URL even though the UI can select up to five files.
 - Repository return shapes and error handling are not fully standardized.
 

@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   countOrderStatuses,
   countSellerOrderStatusMetrics,
+  deriveCodPaymentStatusFromOrderStatus,
   formatOrderStatus,
   isCompletedOrderStatus,
   isOrderItemInProgress,
@@ -110,4 +111,15 @@ test("formats order status labels for UI", () => {
   assert.equal(formatOrderStatus("CONFIRMED"), "Confirmed");
   assert.equal(formatOrderStatus("COMPLETED"), "Completed");
   assert.equal(formatOrderStatus("CANCELLED"), "Cancelled");
+  assert.equal(formatOrderStatus("COD_PENDING"), "Cod Pending");
+});
+
+test("derives COD payment status from order status", () => {
+  assert.equal(deriveCodPaymentStatusFromOrderStatus("PENDING"), "COD_PENDING");
+  assert.equal(deriveCodPaymentStatusFromOrderStatus("CONFIRMED"), "COD_PENDING");
+  assert.equal(
+    deriveCodPaymentStatusFromOrderStatus("COMPLETED"),
+    "COD_COLLECTED",
+  );
+  assert.equal(deriveCodPaymentStatusFromOrderStatus("CANCELLED"), "CANCELLED");
 });
