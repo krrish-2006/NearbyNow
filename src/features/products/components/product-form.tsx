@@ -384,12 +384,19 @@ export function ProductForm({
               : "Create Product"}
         </button>
 
-        {mode === "edit" && (
+        {mode === "edit" ? (
           <Link
             href="/seller/products"
             className="inline-flex h-12 items-center justify-center rounded-xl border px-6 text-sm font-semibold transition hover:bg-neutral-100"
           >
             Cancel Update
+          </Link>
+        ) : (
+          <Link
+            href="/seller/products"
+            className="inline-flex h-12 items-center justify-center rounded-xl border px-6 text-sm font-semibold transition hover:bg-neutral-100"
+          >
+            Cancel
           </Link>
         )}
       </div>
