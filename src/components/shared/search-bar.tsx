@@ -27,7 +27,7 @@ export default function SearchBar() {
     >
       <input
         type="text"
-        placeholder="Search nearby products..."
+        placeholder="Search in any language, like cheap 5kg rice..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         className="flex-1 px-6 py-5 text-lg outline-none"

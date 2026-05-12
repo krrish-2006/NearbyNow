@@ -203,6 +203,7 @@ export type Database = {
           image_url: string | null
           is_active: boolean
           price: number
+          search_embedding: string | null
           shop_id: string
           stock_quantity: number
           title: string
@@ -216,6 +217,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           price: number
+          search_embedding?: string | null
           shop_id: string
           stock_quantity?: number
           title: string
@@ -229,6 +231,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           price?: number
+          search_embedding?: string | null
           shop_id?: string
           stock_quantity?: number
           title?: string
@@ -368,6 +371,25 @@ export type Database = {
           p_shop_id: string
         }
         Returns: number
+      }
+      search_marketplace_products: {
+        Args: {
+          p_query_embedding: string
+          p_category_id?: string | null
+          p_max_price?: number | null
+          p_prefer_cheap?: boolean
+          p_match_count?: number
+        }
+        Returns: {
+          id: string
+          title: string
+          description: string | null
+          price: number
+          image_url: string | null
+          stock_quantity: number
+          shop_name: string
+          similarity: number
+        }[]
       }
       get_seller_order_items: {
         Args: {

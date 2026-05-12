@@ -10,8 +10,17 @@ import type {
   SellerEditableProduct,
   SellerProductCard,
 } from "@/features/seller/types/seller.types";
+import {
+  generateTextEmbedding,
+  toPgVectorLiteral,
+} from "@/lib/ai/huggingface-embeddings";
+import {
+  parseMarketplaceSearchQuery,
+} from "@/features/search/utils/marketplace-query";
 
 type Product = Tables<"products">;
+type ProductSearchRow =
+  Database["public"]["Functions"]["search_marketplace_products"]["Returns"][number];
 
 const PRODUCT_CARD_SELECT = `
   id,
@@ -37,6 +46,59 @@ const PRODUCT_DETAILS_SELECT = `
 
 function toMarketplaceProducts(data: unknown): MarketplaceProduct[] {
   return Array.isArray(data) ? (data as MarketplaceProduct[]) : [];
+}
+
+function toMarketplaceProductsFromSearchRows(
+  data: ProductSearchRow[] | null
+): MarketplaceProduct[] {
+  if (!data) {
+    return [];
+  }
+
+  return data.map((product) => ({
+    id: product.id,
+    title: product.title,
+    description: product.description,
+    price: product.price,
+    image_url: product.image_url,
+    stock_quantity: product.stock_quantity,
+    shops: {
+      name: product.shop_name,
+    },
+  }));
+}
+
+async function getSemanticMarketplaceProducts(
+  supabase: SupabaseClient<Database>,
+  filters: ProductFilters
+): Promise<MarketplaceProduct[]> {
+  if (!filters.search?.trim()) {
+    return [];
+  }
+
+  const parsedSearch = parseMarketplaceSearchQuery(filters.search);
+  const embedding = await generateTextEmbedding(
+    parsedSearch.cleanedSearch,
+    "query",
+  );
+
+  if (!embedding) {
+    return [];
+  }
+
+  const { data, error } = await supabase.rpc("search_marketplace_products", {
+    p_query_embedding: toPgVectorLiteral(embedding),
+    p_category_id: filters.categoryId ?? null,
+    p_max_price: parsedSearch.maxPrice,
+    p_prefer_cheap: parsedSearch.preferCheap,
+    p_match_count: 32,
+  });
+
+  if (error) {
+    return [];
+  }
+
+  return toMarketplaceProductsFromSearchRows(data);
 }
 
 export async function getProductsByShopId(
@@ -133,6 +195,21 @@ export async function getMarketplaceProducts(
   supabase: SupabaseClient<Database>,
   filters: ProductFilters = {}
 ): Promise<MarketplaceProduct[]> {
+  const parsedSearch = filters.search
+    ? parseMarketplaceSearchQuery(filters.search)
+    : null;
+
+  if (filters.search) {
+    const semanticProducts = await getSemanticMarketplaceProducts(
+      supabase,
+      filters,
+    );
+
+    if (semanticProducts.length > 0) {
+      return semanticProducts;
+    }
+  }
+
   let query = supabase.from("products").select(PRODUCT_CARD_SELECT);
 
   if (filters.search) {
@@ -143,9 +220,16 @@ export async function getMarketplaceProducts(
     query = query.eq("category_id", filters.categoryId);
   }
 
-  const { data, error } = await query.order("created_at", {
-    ascending: false,
-  });
+  if (parsedSearch?.maxPrice !== null && parsedSearch?.maxPrice !== undefined) {
+    query = query.lte("price", parsedSearch.maxPrice);
+  }
+
+  const { data, error } = await query.order(
+    parsedSearch?.preferCheap ? "price" : "created_at",
+    {
+      ascending: Boolean(parsedSearch?.preferCheap),
+    },
+  );
 
   if (error) {
     return [];

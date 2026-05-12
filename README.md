@@ -18,7 +18,7 @@ NearbyNow is a local marketplace app where buyers discover products from nearby 
 ## Main Features
 
 - Buyer marketplace homepage
-- Product search and category filtering
+- Product search, AI semantic search, and category filtering
 - Product detail pages
 - City selector
 - Add to cart
@@ -46,6 +46,19 @@ copy .env.example .env.local
 ```
 
 Fill in the Supabase values in `.env.local`.
+
+Optional AI search values:
+
+```bash
+HUGGINGFACE_API_KEY=
+HUGGINGFACE_EMBEDDING_MODEL=intfloat/multilingual-e5-small
+```
+
+After the AI search migration is applied and `HUGGINGFACE_API_KEY` is set, backfill existing product embeddings:
+
+```bash
+npm run search:backfill
+```
 
 Run the dev server:
 

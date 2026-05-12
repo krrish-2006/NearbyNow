@@ -16,6 +16,13 @@ import {
 import {
   productSchema,
 } from "@/features/products/schemas/product.schema";
+import {
+  buildProductSearchText,
+} from "@/features/search/utils/product-search-text";
+import {
+  generateTextEmbedding,
+  toPgVectorLiteral,
+} from "@/lib/ai/huggingface-embeddings";
 
 export async function updateProductAction(
   productId: string,
@@ -97,6 +104,15 @@ export async function updateProductAction(
     );
   }
 
+  const searchEmbedding = await generateTextEmbedding(
+    buildProductSearchText({
+      title: parsed.data.title,
+      description: parsed.data.description,
+      price: parsed.data.price,
+    }),
+    "passage",
+  );
+
   const { error } = await supabase
     .from("products")
     .update({
@@ -111,6 +127,11 @@ export async function updateProductAction(
       ...(imageUrl
         ? {
             image_url: imageUrl,
+          }
+        : {}),
+      ...(searchEmbedding
+        ? {
+            search_embedding: toPgVectorLiteral(searchEmbedding),
           }
         : {}),
     })

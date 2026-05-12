@@ -21,6 +21,13 @@ import {
 import {
   getShopBySellerId,
 } from "@/repositories/shop.repository";
+import {
+  buildProductSearchText,
+} from "@/features/search/utils/product-search-text";
+import {
+  generateTextEmbedding,
+  toPgVectorLiteral,
+} from "@/lib/ai/huggingface-embeddings";
 
 export async function createProductAction(
   formData: FormData
@@ -101,6 +108,15 @@ export async function createProductAction(
     );
   }
 
+  const searchEmbedding = await generateTextEmbedding(
+    buildProductSearchText({
+      title: parsed.data.title,
+      description: parsed.data.description,
+      price: parsed.data.price,
+    }),
+    "passage",
+  );
+
   const result =
     await createProductService(
       supabase,
@@ -115,6 +131,9 @@ export async function createProductAction(
         category_id:
           parsed.data.categoryId,
         image_url: imageUrl,
+        search_embedding: searchEmbedding
+          ? toPgVectorLiteral(searchEmbedding)
+          : null,
       }
     );
 
