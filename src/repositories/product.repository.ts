@@ -17,6 +17,9 @@ import {
 import {
   parseMarketplaceSearchQuery,
 } from "@/features/search/utils/marketplace-query";
+import {
+  filterRelevantSemanticResults,
+} from "@/features/search/utils/semantic-results";
 
 type Product = Tables<"products">;
 type ProductSearchRow =
@@ -98,7 +101,9 @@ async function getSemanticMarketplaceProducts(
     return [];
   }
 
-  return toMarketplaceProductsFromSearchRows(data);
+  return toMarketplaceProductsFromSearchRows(
+    filterRelevantSemanticResults(data ?? []),
+  );
 }
 
 export async function getProductsByShopId(

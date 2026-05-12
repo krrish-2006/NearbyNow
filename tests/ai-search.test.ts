@@ -14,6 +14,9 @@ import {
 import {
   buildProductSearchText,
 } from "../src/features/search/utils/product-search-text.ts";
+import {
+  filterRelevantSemanticResults,
+} from "../src/features/search/utils/semantic-results.ts";
 
 const initialMigration = readFileSync(
   join(
@@ -73,6 +76,52 @@ test("parses token embedding responses by averaging token vectors", () => {
     0.7071067811865475,
     0.7071067811865475,
   ]);
+});
+
+test("filters weak semantic matches when one product is clearly best", () => {
+  assert.deepEqual(
+    filterRelevantSemanticResults([
+      {
+        title: "iphone",
+        similarity: 0.8472,
+      },
+      {
+        title: "Remote Control Car",
+        similarity: 0.8051,
+      },
+    ]),
+    [
+      {
+        title: "iphone",
+        similarity: 0.8472,
+      },
+    ],
+  );
+});
+
+test("keeps close semantic matches for broader searches", () => {
+  assert.deepEqual(
+    filterRelevantSemanticResults([
+      {
+        title: "Rice 5kg",
+        similarity: 0.861,
+      },
+      {
+        title: "Rice 10kg",
+        similarity: 0.842,
+      },
+    ]),
+    [
+      {
+        title: "Rice 5kg",
+        similarity: 0.861,
+      },
+      {
+        title: "Rice 10kg",
+        similarity: 0.842,
+      },
+    ],
+  );
 });
 
 test("ai search migration adds pgvector-backed marketplace search", () => {
