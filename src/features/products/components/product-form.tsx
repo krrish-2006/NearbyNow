@@ -65,6 +65,58 @@ type ExistingImage = {
   imageUrl: string;
 };
 
+const MAX_CLIENT_IMAGE_BYTES = 1_200_000;
+const MAX_IMAGE_DIMENSION = 1600;
+const IMAGE_COMPRESSION_QUALITY = 0.82;
+
+function getJpegFileName(fileName: string): string {
+  return fileName.replace(/\.[^/.]+$/, "") + ".jpg";
+}
+
+async function compressProductImage(file: File): Promise<File> {
+  if (file.size <= MAX_CLIENT_IMAGE_BYTES || !file.type.startsWith("image/")) {
+    return file;
+  }
+
+  const imageBitmap = await createImageBitmap(file).catch(() => null);
+
+  if (!imageBitmap) {
+    return file;
+  }
+
+  const scale = Math.min(
+    1,
+    MAX_IMAGE_DIMENSION / Math.max(imageBitmap.width, imageBitmap.height),
+  );
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(imageBitmap.width * scale));
+  canvas.height = Math.max(1, Math.round(imageBitmap.height * scale));
+
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    imageBitmap.close();
+
+    return file;
+  }
+
+  context.drawImage(imageBitmap, 0, 0, canvas.width, canvas.height);
+  imageBitmap.close();
+
+  const blob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob(resolve, "image/jpeg", IMAGE_COMPRESSION_QUALITY);
+  });
+
+  if (!blob || blob.size >= file.size) {
+    return file;
+  }
+
+  return new File([blob], getJpegFileName(file.name), {
+    type: "image/jpeg",
+    lastModified: Date.now(),
+  });
+}
+
 export function ProductForm({
   categories,
   initialValues,
@@ -80,10 +132,12 @@ export function ProductForm({
   );
   const [selectedImages, setSelectedImages] = useState<SelectedImage[]>([]);
   const [imageError, setImageError] = useState<string | null>(null);
+  const [isPreparingImages, setIsPreparingImages] = useState(false);
   const selectedImagesRef = useRef<SelectedImage[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const totalImageCount = existingImages.length + selectedImages.length;
-  const canAddImages = totalImageCount < MAX_PRODUCT_IMAGES;
+  const canAddImages =
+    totalImageCount < MAX_PRODUCT_IMAGES && !isPreparingImages;
 
   const {
     register,
@@ -154,7 +208,7 @@ export function ProductForm({
     resetFileInput();
   }
 
-  function handleImageChange(files: FileList | null) {
+  async function handleImageChange(files: FileList | null) {
     const nextFiles = Array.from(files ?? []);
     const remainingSlots = MAX_PRODUCT_IMAGES - totalImageCount;
 
@@ -170,14 +224,35 @@ export function ProductForm({
     }
 
     setImageError(null);
+    setIsPreparingImages(true);
+
+    const preparedFiles = await Promise.all(
+      nextFiles.map((file) => compressProductImage(file)),
+    );
+
+    const oversizedFile = preparedFiles.find(
+      (file) => file.size > MAX_CLIENT_IMAGE_BYTES,
+    );
+
+    if (oversizedFile) {
+      setImageError(
+        "One image is too large. Please choose a smaller product image.",
+      );
+      setIsPreparingImages(false);
+      resetFileInput();
+
+      return;
+    }
+
     setSelectedImages((images) => [
       ...images,
-      ...nextFiles.map((file) => ({
+      ...preparedFiles.map((file) => ({
         id: crypto.randomUUID(),
         file,
         previewUrl: URL.createObjectURL(file),
       })),
     ]);
+    setIsPreparingImages(false);
     resetFileInput();
   }
 
@@ -427,7 +502,11 @@ export function ProductForm({
               }`}
               aria-disabled={!canAddImages}
             >
-              {mode === "edit" ? "Add Images" : "Choose Files"}
+              {isPreparingImages
+                ? "Preparing..."
+                : mode === "edit"
+                  ? "Add Images"
+                  : "Choose Files"}
             </label>
           </div>
 
