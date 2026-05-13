@@ -295,6 +295,169 @@ export type Database = {
           },
         ]
       }
+      seller_ai_credits: {
+        Row: {
+          balance: number
+          lifetime_purchased: number
+          lifetime_used: number
+          seller_profile_id: string
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          lifetime_purchased?: number
+          lifetime_used?: number
+          seller_profile_id: string
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          lifetime_purchased?: number
+          lifetime_used?: number
+          seller_profile_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_ai_credits_seller_profile_id_fkey"
+            columns: ["seller_profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_credit_purchases: {
+        Row: {
+          amount_paise: number
+          created_at: string
+          credited_at: string | null
+          credits: number
+          currency: string
+          id: string
+          pack_id: string
+          provider: string
+          provider_order_id: string | null
+          provider_payment_id: string | null
+          seller_profile_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount_paise: number
+          created_at?: string
+          credited_at?: string | null
+          credits: number
+          currency?: string
+          id?: string
+          pack_id: string
+          provider?: string
+          provider_order_id?: string | null
+          provider_payment_id?: string | null
+          seller_profile_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount_paise?: number
+          created_at?: string
+          credited_at?: string | null
+          credits?: number
+          currency?: string
+          id?: string
+          pack_id?: string
+          provider?: string
+          provider_order_id?: string | null
+          provider_payment_id?: string | null
+          seller_profile_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_credit_purchases_seller_profile_id_fkey"
+            columns: ["seller_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_enhancement_jobs: {
+        Row: {
+          completed_at: string | null
+          cost_credits: number
+          created_at: string
+          error_message: string | null
+          id: string
+          provider: string
+          refunded_at: string | null
+          seller_profile_id: string
+          shop_id: string | null
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          cost_credits?: number
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          provider?: string
+          refunded_at?: string | null
+          seller_profile_id: string
+          shop_id?: string | null
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          cost_credits?: number
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          provider?: string
+          refunded_at?: string | null
+          seller_profile_id?: string
+          shop_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_enhancement_jobs_seller_profile_id_fkey"
+            columns: ["seller_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_enhancement_jobs_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_webhook_events: {
+        Row: {
+          event_type: string
+          id: string
+          processed_at: string
+          provider: string
+        }
+        Insert: {
+          event_type: string
+          id: string
+          processed_at?: string
+          provider?: string
+        }
+        Update: {
+          event_type?: string
+          id?: string
+          processed_at?: string
+          provider?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -412,6 +575,36 @@ export type Database = {
           p_shop_id: string
         }
         Returns: number
+      }
+      get_seller_ai_credit_balance: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      reserve_ai_enhancement_credit: {
+        Args: {
+          p_shop_id: string
+        }
+        Returns: string
+      }
+      complete_ai_enhancement_job: {
+        Args: {
+          p_job_id: string
+        }
+        Returns: undefined
+      }
+      refund_ai_enhancement_credit: {
+        Args: {
+          p_job_id: string
+          p_error_message?: string | null
+        }
+        Returns: undefined
+      }
+      grant_ai_credits_for_paid_purchase: {
+        Args: {
+          p_purchase_id: string
+          p_provider_payment_id: string
+        }
+        Returns: undefined
       }
       search_marketplace_products: {
         Args: {

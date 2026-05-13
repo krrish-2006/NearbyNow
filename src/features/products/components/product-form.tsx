@@ -945,7 +945,22 @@ export function ProductForm({
           </p>
         </div>
 
-        {imageError && <p className="text-sm text-red-500">{imageError}</p>}
+        {imageError && (
+          <p className="text-sm text-red-500">
+            {imageError}
+            {imageError.includes("AI image credits") && (
+              <>
+                {" "}
+                <Link
+                  href="/seller/profile"
+                  className="font-semibold underline"
+                >
+                  Buy credits
+                </Link>
+              </>
+            )}
+          </p>
+        )}
 
         {errors.image && (
           <p className="text-sm text-red-500">{String(errors.image.message)}</p>

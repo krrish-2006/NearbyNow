@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import { AiCreditPurchasePanel } from "@/features/ai-credits/components/ai-credit-purchase-panel";
 import { ShopProfileFields } from "@/features/seller/components/shop-profile-fields";
 import { requireSeller } from "@/features/seller/utils/require-seller";
 import { createClient } from "@/lib/supabase/server";
@@ -11,10 +12,12 @@ export default async function SellerProfilePage() {
 
   const supabase = await createClient();
 
-  const [cities, shop] = await Promise.all([
+  const [cities, shop, creditBalanceResult] = await Promise.all([
     getCities(supabase),
     getShopBySellerId(supabase, profile.id),
+    supabase.rpc("get_seller_ai_credit_balance"),
   ]);
+  const creditBalance = creditBalanceResult.data ?? 0;
 
   return (
     <div>
@@ -44,6 +47,8 @@ export default async function SellerProfilePage() {
           initialCityId={shop?.city_id ?? null}
           initialShopName={shop?.name ?? null}
         />
+
+        <AiCreditPurchasePanel balance={creditBalance} />
       </div>
     </div>
   );

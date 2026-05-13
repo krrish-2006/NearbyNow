@@ -46,6 +46,14 @@ function getEnhancementError(status: number): string {
   return "AI enhancement failed. Please try another image.";
 }
 
+function getCreditError(errorMessage: string | undefined): string {
+  if (errorMessage?.includes("insufficient_ai_credits")) {
+    return "You need AI image credits before enhancing more images.";
+  }
+
+  return "Could not reserve an AI image credit.";
+}
+
 function getImageFileName(fileName: string | null): string {
   const baseName = fileName?.replace(/\.[^/.]+$/, "") || "product";
 
@@ -127,8 +135,26 @@ export async function enhanceProductImageAction(
     };
   }
 
+  const { data: jobId, error: reserveError } = await supabase.rpc(
+    "reserve_ai_enhancement_credit",
+    {
+      p_shop_id: sellerShop.id,
+    },
+  );
+
+  if (reserveError || !jobId) {
+    return {
+      success: false,
+      error: getCreditError(reserveError?.message),
+    };
+  }
+
   const requestBody = new FormData();
-  requestBody.append("file", imageBlob, getImageFileName(file instanceof File ? file.name : null));
+  requestBody.append(
+    "file",
+    imageBlob,
+    getImageFileName(file instanceof File ? file.name : null),
+  );
   requestBody.append("format", "png");
   requestBody.append("matting", "closed-form");
 
@@ -142,14 +168,41 @@ export async function enhanceProductImageAction(
   }).catch(() => null);
 
   if (!response?.ok) {
+    await supabase.rpc("refund_ai_enhancement_credit", {
+      p_job_id: jobId,
+      p_error_message: response
+        ? getEnhancementError(response.status)
+        : "AI enhancement failed.",
+    });
+
     return {
       success: false,
-      error: response ? getEnhancementError(response.status) : "AI enhancement failed.",
+      error: response
+        ? getEnhancementError(response.status)
+        : "AI enhancement failed.",
     };
   }
 
   const contentType = response.headers.get("content-type") ?? "image/png";
   const imageBuffer = Buffer.from(await response.arrayBuffer());
+  const { error: completeError } = await supabase.rpc(
+    "complete_ai_enhancement_job",
+    {
+      p_job_id: jobId,
+    },
+  );
+
+  if (completeError) {
+    await supabase.rpc("refund_ai_enhancement_credit", {
+      p_job_id: jobId,
+      p_error_message: "Could not complete AI enhancement job.",
+    });
+
+    return {
+      success: false,
+      error: "Could not complete AI enhancement job.",
+    };
+  }
 
   return {
     success: true,
