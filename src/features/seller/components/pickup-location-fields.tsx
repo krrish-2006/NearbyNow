@@ -56,6 +56,7 @@ export function PickupLocationFields({
   const [isSearching, setIsSearching] = useState(false);
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [isResolvingPin, setIsResolvingPin] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
 
   async function searchLocations() {
     const nextQuery = query.trim();
@@ -139,6 +140,34 @@ export function PickupLocationFields({
     }
   }
 
+  function useDeviceLocation() {
+    if (!navigator.geolocation) {
+      toast.error("Your browser does not support location access");
+      return;
+    }
+
+    setIsLocating(true);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        void selectMapPoint({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+        setIsLocating(false);
+      },
+      () => {
+        toast.error("Could not access your location");
+        setIsLocating(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000,
+      },
+    );
+  }
+
   function cancelEdit() {
     setIsEditing(!savedLocation);
     setQuery(savedLocation?.address ?? "");
@@ -146,6 +175,7 @@ export function PickupLocationFields({
     setPickupInstructions(savedLocation?.pickup_instructions ?? "");
     setIsMapOpen(false);
     setIsResolvingPin(false);
+    setIsLocating(false);
     setSelectedResult(
       savedLocation
         ? {
@@ -264,6 +294,8 @@ export function PickupLocationFields({
                 latitude={selectedResult?.latitude ?? null}
                 longitude={selectedResult?.longitude ?? null}
                 onSelect={selectMapPoint}
+                onLocate={useDeviceLocation}
+                isLocating={isLocating}
               />
 
               <p className="text-xs text-neutral-500">

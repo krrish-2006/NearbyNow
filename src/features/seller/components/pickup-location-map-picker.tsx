@@ -7,6 +7,8 @@ type PickupLocationMapPickerProps = {
   latitude: number | null;
   longitude: number | null;
   onSelect: (point: { latitude: number; longitude: number }) => void;
+  onLocate: () => void;
+  isLocating?: boolean;
 };
 
 const DURGAPUR_CENTER = {
@@ -18,6 +20,8 @@ export function PickupLocationMapPicker({
   latitude,
   longitude,
   onSelect,
+  onLocate,
+  isLocating = false,
 }: PickupLocationMapPickerProps) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Leaflet.Map | null>(null);
@@ -121,6 +125,24 @@ export function PickupLocationMapPicker({
 
   return (
     <div className="overflow-hidden rounded-2xl border bg-white">
+      <div className="flex items-center justify-between gap-3 border-b p-3">
+        <p className="text-xs font-medium text-neutral-500">
+          Click the map or use your device location.
+        </p>
+
+        <button
+          type="button"
+          onClick={onLocate}
+          disabled={isLocating}
+          className="inline-flex h-9 shrink-0 items-center gap-2 rounded-xl bg-black px-3 text-xs font-semibold text-white disabled:opacity-50"
+        >
+          <span className="relative inline-flex h-3.5 w-3.5 items-center justify-center rounded-full border border-white">
+            <span className="h-1.5 w-1.5 rounded-full bg-white" />
+          </span>
+          {isLocating ? "Finding" : "Your location"}
+        </button>
+      </div>
+
       <div ref={mapContainerRef} className="h-80 w-full" />
     </div>
   );
