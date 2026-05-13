@@ -77,10 +77,12 @@
 ## Seller Profile Flow
 
 1. Seller opens `/seller/profile`.
-2. Profile shows account information and a City select for the shop.
+2. Profile shows account information, shop fields, AI credit balance, and pickup location fields.
 3. `updateShopCityAction` validates the current seller, updates the seller's shop city through a repository helper, and revalidates the profile page.
-4. `/seller` redirects to `/seller/profile`.
-5. `/seller/settings` redirects to `/seller/profile` for old links.
+4. The pickup location picker searches OpenStreetMap through the app's `/api/locations/search` route, then the seller confirms the correct location.
+5. `updatePickupLocationAction` stores the protected pickup address, coordinates, pickup window, and pickup instructions.
+6. `/seller` redirects to `/seller/profile`.
+7. `/seller/settings` redirects to `/seller/profile` for old links.
 
 ## Seller Order Status Flow
 
@@ -91,8 +93,9 @@
 5. Sellers can choose Pending, Confirmed, Completed, or Cancelled.
 6. The database allows sellers to update only `order_items.status` for their own shop-owned line items.
 7. Status updates set lifecycle timestamps and sync the parent order/COD payment status.
-8. The buyer orders page reads the same item and order status data, so seller status changes show there too.
-9. One seller cannot update another seller's items in the same multi-shop order.
+8. Confirmed/completed buyer order items include pickup address, map link, pickup window, and pickup instructions from the same protected pickup location data.
+9. The buyer orders page reads the same item and order status data, so seller status changes show there too.
+10. One seller cannot update another seller's items in the same multi-shop order.
 
 ## Auth/Role Flow
 

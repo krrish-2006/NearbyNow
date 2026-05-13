@@ -56,6 +56,15 @@ export async function getOrdersByUserId(
               id: item.shop_id,
               name: item.shop_name,
             },
+            pickup_location: item.pickup_address
+              ? {
+                  address: item.pickup_address,
+                  latitude: Number(item.pickup_latitude),
+                  longitude: Number(item.pickup_longitude),
+                  pickup_window: item.pickup_window,
+                  pickup_instructions: item.pickup_instructions,
+                }
+              : null,
           },
         ],
       });
@@ -77,6 +86,15 @@ export async function getOrdersByUserId(
         id: item.shop_id,
         name: item.shop_name,
       },
+      pickup_location: item.pickup_address
+        ? {
+            address: item.pickup_address,
+            latitude: Number(item.pickup_latitude),
+            longitude: Number(item.pickup_longitude),
+            pickup_window: item.pickup_window,
+            pickup_instructions: item.pickup_instructions,
+          }
+        : null,
     });
   }
 
@@ -113,6 +131,15 @@ export async function getSellerOrderItemsByShopId(
       id: item.shop_id,
       name: item.shop_name,
     },
+    pickup_location: item.pickup_address
+      ? {
+          address: item.pickup_address,
+          latitude: Number(item.pickup_latitude),
+          longitude: Number(item.pickup_longitude),
+          pickup_window: item.pickup_window,
+          pickup_instructions: item.pickup_instructions,
+        }
+      : null,
     orders: {
       id: item.order_id,
       user_id: item.buyer_user_id,

@@ -107,6 +107,7 @@ Important tables:
 - `orders`
 - `order_items`
 - `wishlists`
+- `shop_pickup_locations`
 
 Important relationships:
 
@@ -118,6 +119,7 @@ Important relationships:
 - Orders have order items.
 - Order items have an owning shop for seller-scoped fulfillment.
 - Users own wishlist rows, and each buyer can wishlist a product only once.
+- A shop can have one protected pickup location used for confirmed pickup orders.
 
 Important RLS/policy note:
 
@@ -132,6 +134,7 @@ Important RLS/policy note:
 - Seller cart quantity metric RPC was added in `20260511143000_create_seller_cart_quantity_rpc.sql`.
 - Seller order item RPC, status update RPC, buyer order item RPC, and RLS recursion fixes have been pushed.
 - Multi-shop fulfillment and order/payment lifecycle hardening live in `20260512103000_formalize_multishop_fulfillment.sql`.
+- Pickup locations live in `shop_pickup_locations`, not public `shops`, so precise pickup addresses are only shown to sellers and buyers with confirmed/completed order items.
 
 Migration hygiene:
 
@@ -168,7 +171,7 @@ Next best improvements:
 1. Continue auditing live RLS behavior after real buyer/seller testing.
 2. Expand browser E2E coverage to authenticated checkout/status flows with dedicated test users.
 3. Configure an external error drain/webhook if the project upgrades beyond Vercel Hobby-level observability.
-4. Add richer seller fulfillment workflows such as cancellation reasons or pickup windows.
+4. Add richer seller fulfillment workflows such as cancellation reasons and pickup OTP verification.
 5. Consider a true multi-image product model if product galleries become important.
 
 ## Current Honest Architecture Rating

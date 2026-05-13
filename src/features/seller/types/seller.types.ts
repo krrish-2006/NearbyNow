@@ -35,6 +35,14 @@ export type SellerOrderItem = Pick<
 > & {
   products: Pick<Tables<"products">, "id" | "title"> | null;
   shops: Pick<Tables<"shops">, "id" | "name"> | null;
+  pickup_location: Pick<
+    Tables<"shop_pickup_locations">,
+    | "address"
+    | "latitude"
+    | "longitude"
+    | "pickup_window"
+    | "pickup_instructions"
+  > | null;
   orders: Pick<
     Tables<"orders">,
     | "id"

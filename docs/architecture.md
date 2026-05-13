@@ -66,13 +66,14 @@ Server Actions should handle mutations:
 - Product create/edit uses shared schema validation for the 50-word description limit and maximum selected images.
 - Multi-shop checkout is modeled through shop-owned order items, so each seller owns only the lines they must fulfill.
 - Order item status changes now sync parent order status and COD payment status in Postgres.
+- Seller pickup location is modeled separately from public shop data, edited from Seller Profile, and exposed to buyers through authorized order RPCs after seller confirmation.
 - Vercel Analytics, Speed Insights, structured server logs, and a route error boundary provide a baseline monitoring layer.
 - Playwright E2E tests cover the marketplace shell and protected buyer/seller route redirects.
 
 ## Current Weak Areas
 
 - Authenticated browser E2E coverage still needs dedicated test users and stable seeded test data.
-- Seller fulfillment has item ownership and lifecycle timestamps, but richer operational details like pickup windows or cancellation reasons are not modeled yet.
+- Seller fulfillment has item ownership, lifecycle timestamps, and seller-confirmed pickup locations, but pickup OTP verification and cancellation reasons are not modeled yet.
 - Product storage currently saves one primary image URL even though the UI can select up to five files.
 - Repository return shapes and error handling are not fully standardized.
 

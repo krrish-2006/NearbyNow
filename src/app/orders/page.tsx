@@ -132,6 +132,41 @@ export default async function OrdersPage() {
                           <p className="mt-2 inline-flex rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-700">
                             {formatOrderStatus(item.status)}
                           </p>
+
+                          {item.pickup_location ? (
+                            <div className="mt-3 rounded-2xl bg-neutral-50 p-3 text-sm text-neutral-600">
+                              <p className="font-semibold text-neutral-900">
+                                Pickup: {item.pickup_location.address}
+                              </p>
+
+                              {item.pickup_location.pickup_window && (
+                                <p className="mt-1">
+                                  Window: {item.pickup_location.pickup_window}
+                                </p>
+                              )}
+
+                              {item.pickup_location.pickup_instructions && (
+                                <p className="mt-1">
+                                  {item.pickup_location.pickup_instructions}
+                                </p>
+                              )}
+
+                              <a
+                                href={`https://www.openstreetmap.org/?mlat=${item.pickup_location.latitude}&mlon=${item.pickup_location.longitude}#map=18/${item.pickup_location.latitude}/${item.pickup_location.longitude}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="mt-2 inline-flex font-semibold underline"
+                              >
+                                Open map
+                              </a>
+                            </div>
+                          ) : (
+                            item.status === "PENDING" && (
+                              <p className="mt-3 text-sm text-neutral-500">
+                                Pickup details appear after the seller confirms.
+                              </p>
+                            )
+                          )}
                         </div>
 
                         <p className="text-lg font-bold">

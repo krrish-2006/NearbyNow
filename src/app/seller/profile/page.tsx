@@ -1,10 +1,12 @@
 import Image from "next/image";
 
 import { AiCreditPurchasePanel } from "@/features/ai-credits/components/ai-credit-purchase-panel";
+import { PickupLocationFields } from "@/features/seller/components/pickup-location-fields";
 import { ShopProfileFields } from "@/features/seller/components/shop-profile-fields";
 import { requireSeller } from "@/features/seller/utils/require-seller";
 import { createClient } from "@/lib/supabase/server";
 import { getCities } from "@/repositories/city.repository";
+import { getPickupLocationByShopId } from "@/repositories/pickup-location.repository";
 import { getShopBySellerId } from "@/repositories/shop.repository";
 
 export default async function SellerProfilePage() {
@@ -18,6 +20,9 @@ export default async function SellerProfilePage() {
     supabase.rpc("get_seller_ai_credit_balance"),
   ]);
   const creditBalance = creditBalanceResult.data ?? 0;
+  const pickupLocation = shop
+    ? await getPickupLocationByShopId(supabase, shop.id)
+    : null;
 
   return (
     <div>
@@ -47,6 +52,8 @@ export default async function SellerProfilePage() {
           initialCityId={shop?.city_id ?? null}
           initialShopName={shop?.name ?? null}
         />
+
+        <PickupLocationFields initialLocation={pickupLocation} />
 
         <AiCreditPurchasePanel balance={creditBalance} />
       </div>

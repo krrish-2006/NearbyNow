@@ -295,6 +295,56 @@ export type Database = {
           },
         ]
       }
+      shop_pickup_locations: {
+        Row: {
+          address: string
+          confirmed_at: string
+          created_at: string
+          latitude: number
+          longitude: number
+          osm_display_name: string | null
+          osm_place_id: string | null
+          pickup_instructions: string | null
+          pickup_window: string | null
+          shop_id: string
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          confirmed_at?: string
+          created_at?: string
+          latitude: number
+          longitude: number
+          osm_display_name?: string | null
+          osm_place_id?: string | null
+          pickup_instructions?: string | null
+          pickup_window?: string | null
+          shop_id: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          confirmed_at?: string
+          created_at?: string
+          latitude?: number
+          longitude?: number
+          osm_display_name?: string | null
+          osm_place_id?: string | null
+          pickup_instructions?: string | null
+          pickup_window?: string | null
+          shop_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shop_pickup_locations_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: true
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       seller_ai_credits: {
         Row: {
           balance: number
@@ -661,6 +711,11 @@ export type Database = {
           product_title: string
           shop_id: string
           shop_name: string
+          pickup_address: string | null
+          pickup_latitude: number | null
+          pickup_longitude: number | null
+          pickup_window: string | null
+          pickup_instructions: string | null
           order_id: string
           buyer_user_id: string
           payment_method: string
@@ -691,6 +746,11 @@ export type Database = {
           shop_id: string
           shop_name: string
           product_title: string
+          pickup_address: string | null
+          pickup_latitude: number | null
+          pickup_longitude: number | null
+          pickup_window: string | null
+          pickup_instructions: string | null
         }[]
       }
       set_order_item_fulfillment_defaults: {

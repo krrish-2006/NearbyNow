@@ -6,7 +6,7 @@
 2. Expand Playwright E2E coverage to authenticated buyer checkout and seller status updates with dedicated test users.
 3. Add local Supabase integration coverage for wishlist RLS, seller wishlist metrics, and seller cart quantity metrics.
 4. Audit live RLS behavior after real buyer/seller test accounts place orders and wishlist products.
-5. Add richer seller fulfillment details such as cancellation reasons, pickup windows, or seller notes.
+5. Push and verify the pickup-location migration, then test seller pickup confirmation with real buyer/seller accounts.
 
 ## Architecture Improvements
 
@@ -21,7 +21,7 @@
 1. Add a buyer wishlist page.
 2. Add product reviews and ratings.
 3. Add seller shop public pages.
-4. Add order cancellation/status tracking.
+4. Add pickup OTP/code verification for completed orders.
 5. Add better empty/loading/error states.
 6. Add a true product image gallery table if multiple stored images become required.
 

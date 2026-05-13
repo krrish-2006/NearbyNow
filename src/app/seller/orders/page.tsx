@@ -166,9 +166,44 @@ export default async function SellerOrdersPage() {
                 </p>
               </div>
 
+              {item.pickup_location ? (
+                <div className="mt-5 rounded-2xl bg-neutral-50 p-4 text-sm text-neutral-600">
+                  <p className="font-semibold text-neutral-900">
+                    Pickup location: {item.pickup_location.address}
+                  </p>
+
+                  {item.pickup_location.pickup_window && (
+                    <p className="mt-1">
+                      Window: {item.pickup_location.pickup_window}
+                    </p>
+                  )}
+
+                  {item.pickup_location.pickup_instructions && (
+                    <p className="mt-1">
+                      Instructions: {item.pickup_location.pickup_instructions}
+                    </p>
+                  )}
+
+                  <a
+                    href={`https://www.openstreetmap.org/?mlat=${item.pickup_location.latitude}&mlon=${item.pickup_location.longitude}#map=18/${item.pickup_location.latitude}/${item.pickup_location.longitude}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-2 inline-flex font-semibold underline"
+                  >
+                    Open map
+                  </a>
+                </div>
+              ) : (
+                <p className="mt-5 rounded-2xl bg-neutral-50 p-4 text-sm text-neutral-500">
+                  Add a pickup location in Seller Profile before confirming
+                  pickup orders.
+                </p>
+              )}
+
               <SellerOrderStatusControls
                 currentStatus={item.status}
                 orderItemId={item.id}
+                hasPickupLocation={Boolean(item.pickup_location)}
               />
             </div>
           ))}
