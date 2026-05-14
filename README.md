@@ -1,9 +1,38 @@
 # NearbyNow
 
-NearbyNow is a local marketplace app where buyers discover products from nearby shops and sellers manage their shop listings. The current MVP focuses on Durgapur, with other cities shown as coming soon.
+NearbyNow is a local marketplace app where buyers can discover products from nearby shops and sellers can manage their shop listings.
+
+The goal of NearbyNow is to help local physical shops get discovered online while allowing customers to browse nearby products before visiting or ordering.
 
 ## Live Demo
+
 https://www.nearbynow.store
+
+## GitHub Repository
+
+https://github.com/krrish-2006/nearbynow
+
+## Screenshots
+
+### Buyer Home Page
+
+![NearbyNow Home Page](./docs/screenshots/home.png)
+
+### Product Details Page
+
+![NearbyNow Product Details](./docs/screenshots/product-details.png)
+
+### Seller Profile Page
+
+![NearbyNow Seller Profile](./docs/screenshots/seller-profile.png)
+
+### Seller Orders Dashboard
+
+![NearbyNow Seller Orders](./docs/screenshots/seller-orders.png)
+
+### Seller Products Dashboard
+
+![NearbyNow Seller Products](./docs/screenshots/seller-products.png)
 
 ## Tech Stack
 
@@ -18,103 +47,95 @@ https://www.nearbynow.store
 - Zod
 - React Hook Form
 
-## Main Features
+## Features
 
-- Buyer marketplace homepage
-- Product search, AI semantic search, and category filtering
-- Product detail pages
-- City selector
-- Add to cart
-- Direct Buy Now checkout
-- COD order flow
-- Stock tracking and stock decrement after orders
-- Buyer order history
-- Seller portal
-- Seller product create/edit/delete
-- Product image upload
-- Seller order view
+### Buyer Features
 
-## Local Setup
+- Browse products from nearby shops
+- Search for products, brands, and categories
+- Filter products by category
+- View product details
+- Add products to cart
+- Add products to wishlist
+- View seller/shop information
+- Buyer and seller mode switching
 
-Install dependencies:
+### Seller Features
+
+- Seller profile management
+- Shop name and city management
+- Pickup location setup
+- Product listing dashboard
+- Add product workflow
+- Seller order dashboard
+- Order status tracking sections such as pending, confirmed, completed, and cancelled
+
+### Product Features
+
+- Product images
+- Product title and description
+- Product category
+- Product price
+- Stock quantity
+- Seller/shop information
+- Product detail page
+
+## My Role
+
+I designed and developed the full-stack MVP of NearbyNow.
+
+My work includes:
+
+- Building the buyer marketplace interface
+- Building seller portal pages
+- Creating product listing workflows
+- Implementing authentication with Supabase Auth
+- Using Supabase PostgreSQL for database-backed features
+- Using Supabase Storage for image-related workflows
+- Building forms with Zod and React Hook Form
+- Creating responsive UI using Tailwind CSS
+- Planning AI-powered search and product-image enhancement workflows
+
+## What I Learned
+
+While building NearbyNow, I learned:
+
+- How to structure a full-stack project using Next.js App Router
+- How to use Supabase Auth, PostgreSQL, and Storage
+- How to create validated forms with Zod and React Hook Form
+- How to design seller and buyer workflows
+- How to think about product discovery, search, categories, and stock tracking
+- How to build a real-world project instead of only small practice apps
+
+## Known Limitations
+
+NearbyNow is still an MVP and is actively being improved.
+
+Current limitations:
+
+- Payments and delivery flow are still being improved
+- AI search is planned but not fully production-ready yet
+- Seller analytics are planned for future versions
+- Currently focused on the Durgapur MVP use case
+- Product data is currently limited for demo/testing
+
+## Future Improvements
+
+Planned improvements:
+
+- AI-powered typo-tolerant product search
+- Product search using image understanding
+- Better seller analytics dashboard
+- Order confirmation workflow
+- Payment integration
+- Delivery or pickup scheduling
+- Better product recommendation system
+- Improved mobile UI
+- More realistic shop and product data
+
+## How to Run Locally
+
+Clone the repository:
 
 ```bash
-npm install
-```
-
-Create local environment variables:
-
-```bash
-copy .env.example .env.local
-```
-
-Fill in the Supabase values in `.env.local`.
-
-Optional AI search values:
-
-```bash
-JINA_API_KEY=
-JINA_EMBEDDING_MODEL=jina-clip-v2
-HUGGINGFACE_API_KEY=
-HUGGINGFACE_NSFW_MODEL=Falconsai/nsfw_image_detection
-```
-
-After the AI search migration is applied and `JINA_API_KEY` is set, backfill existing product embeddings:
-
-```bash
-npm run search:backfill
-```
-
-Run the dev server:
-
-```bash
-npm run dev
-```
-
-Open:
-
-```txt
-http://localhost:3000
-```
-
-## Verification Commands
-
-```bash
-npx tsc --noEmit
-npm run lint
-npm run build
-```
-
-On Windows, `npm run build` can require permission outside restricted sandboxes because Next.js spawns worker processes.
-
-## Supabase Commands
-
-Check migration state:
-
-```bash
-npx supabase migration list
-```
-
-Push migrations:
-
-```bash
-npx supabase db push
-```
-
-Migration filenames must use the Supabase timestamp format:
-
-```txt
-YYYYMMDDHHMMSS_name.sql
-```
-
-## Project Context
-
-For AI/Codex handoff, read:
-
-- `PROJECT_CONTEXT.md`
-- `NEXT_TASKS.md`
-- `docs/architecture.md`
-- `docs/database.md`
-- `docs/flows.md`
-
-Start new Codex sessions by asking it to read `PROJECT_CONTEXT.md` before editing.
+git clone https://github.com/krrish-2006/nearbynow.git
