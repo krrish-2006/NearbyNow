@@ -24,6 +24,10 @@ function formatCoordinates(latitude: number, longitude: number) {
   return `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
 }
 
+function getGoogleMapsUrl(latitude: number, longitude: number) {
+  return `https://www.google.com/maps?q=${latitude},${longitude}`;
+}
+
 export function PickupLocationFields({
   initialLocation,
 }: PickupLocationFieldsProps) {
@@ -335,12 +339,15 @@ export function PickupLocationFields({
                 )}
               </p>
               <a
-                href={`https://www.openstreetmap.org/?mlat=${selectedResult.latitude}&mlon=${selectedResult.longitude}#map=18/${selectedResult.latitude}/${selectedResult.longitude}`}
+                href={getGoogleMapsUrl(
+                  selectedResult.latitude,
+                  selectedResult.longitude,
+                )}
                 target="_blank"
                 rel="noreferrer"
                 className="mt-2 inline-flex font-semibold underline"
               >
-                Preview on OpenStreetMap
+                Preview on Google Maps
               </a>
             </div>
           )}
@@ -404,7 +411,10 @@ export function PickupLocationFields({
 
           {savedLocation && (
             <a
-              href={`https://www.openstreetmap.org/?mlat=${savedLocation.latitude}&mlon=${savedLocation.longitude}#map=18/${savedLocation.latitude}/${savedLocation.longitude}`}
+              href={getGoogleMapsUrl(
+                Number(savedLocation.latitude),
+                Number(savedLocation.longitude),
+              )}
               target="_blank"
               rel="noreferrer"
               className="mt-3 inline-flex font-semibold underline"
