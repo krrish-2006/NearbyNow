@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 import { notFound } from "next/navigation";
 
 import Link from "next/link";
@@ -16,6 +14,7 @@ import { getWishlistItemId } from "@/repositories/wishlist.repository";
 import BuyNowButton from "@/features/checkout/components/buy-now-button";
 import AddToCartButton from "@/features/cart/components/add-to-cart-button";
 import ProductCard from "@/features/products/components/product-card";
+import { ProductImageGallery } from "@/features/products/components/product-image-gallery";
 import WishlistButton from "@/features/wishlist/components/wishlist-button";
 
 export default async function ProductDetailsPage({
@@ -66,43 +65,10 @@ export default async function ProductDetailsPage({
     <main className="min-h-screen bg-neutral-100">
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
-          <div className="overflow-hidden rounded-[2rem] border bg-white shadow-sm">
-            <div className="relative aspect-square bg-neutral-100">
-              {displayImages[0] ? (
-                <Image
-                  src={displayImages[0]}
-                  alt={product.title}
-                  fill
-                  sizes="700px"
-                  priority
-                  className="object-cover"
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center text-neutral-400">
-                  No Image
-                </div>
-              )}
-            </div>
-
-            {displayImages.length > 1 && (
-              <div className="grid grid-cols-4 gap-3 border-t p-4">
-                {displayImages.slice(1).map((imageUrl, index) => (
-                  <div
-                    key={imageUrl}
-                    className="relative aspect-square overflow-hidden rounded-2xl border bg-neutral-100"
-                  >
-                    <Image
-                      src={imageUrl}
-                      alt={`${product.title} image ${index + 2}`}
-                      fill
-                      sizes="140px"
-                      className="object-cover"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <ProductImageGallery
+            images={displayImages}
+            productTitle={product.title}
+          />
 
           <div className="space-y-6 sm:space-y-8">
             <div className="space-y-5">
